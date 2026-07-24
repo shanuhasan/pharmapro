@@ -65,6 +65,7 @@ class MedicineController extends Controller
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'generic_name' => 'nullable|string|max:255',
+            'hsn_code' => 'nullable|string|max:255',
             'category_id' => 'required|exists:medicine_categories,id',
             'unit_id' => 'required|exists:units,id',
             'manufacturer' => 'nullable|string|max:255',
@@ -92,6 +93,7 @@ class MedicineController extends Controller
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'generic_name' => 'nullable|string|max:255',
+            'hsn_code' => 'nullable|string|max:255',
             'category_id' => 'required|exists:medicine_categories,id',
             'unit_id' => 'required|exists:units,id',
             'manufacturer' => 'nullable|string|max:255',

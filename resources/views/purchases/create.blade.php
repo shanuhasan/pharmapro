@@ -68,6 +68,7 @@
                                 <thead class="bg-gray-50">
                                     <tr>
                                         <th class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Medicine</th>
+                                        <th class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">HSN Code</th>
                                         <th class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Batch</th>
                                         <th class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Expiry</th>
                                         <th class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Strip</th>
@@ -105,9 +106,9 @@
 
     <!-- Medicine template for JS -->
     <select id="medicine_template" class="hidden">
-        <option value="" data-medicines-per-strip="1">Select Medicine</option>
+        <option value="" data-medicines-per-strip="1" data-hsn-code="">Select Medicine</option>
         @foreach($medicines as $medicine)
-            <option value="{{ $medicine->id }}" data-medicines-per-strip="{{ $medicine->medicines_per_strip ?? 1 }}">{{ $medicine->name }}</option>
+            <option value="{{ $medicine->id }}" data-medicines-per-strip="{{ $medicine->medicines_per_strip ?? 1 }}" data-hsn-code="{{ $medicine->hsn_code ?? '' }}">{{ $medicine->name }}</option>
         @endforeach
     </select>
 
@@ -122,6 +123,7 @@
                 let tr = `
                 <tr id="row_${rowIdx}">
                     <td class="px-3 py-2"><select name="items[${rowIdx}][medicine_id]" class="medicine_select block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 sm:text-sm" required>${medicineOptions}</select></td>
+                    <td class="px-3 py-2"><input type="text" name="items[${rowIdx}][hsn_code]" class="hsn_input block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 sm:text-sm"></td>
                     <td class="px-3 py-2"><input type="text" name="items[${rowIdx}][batch_number]" class="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 sm:text-sm" required></td>
                     <td class="px-3 py-2"><input type="date" name="items[${rowIdx}][expiry_date]" class="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 sm:text-sm"></td>
                     <td class="px-3 py-2"><input type="number" name="items[${rowIdx}][strip]" class="strip_input block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 sm:text-sm" min="0" step="any"></td>
@@ -157,8 +159,14 @@
             // When medicine is selected, store perStrip data
             $(document).on('change', '.medicine_select', function() {
                 let perStrip = $(this).find('option:selected').data('medicines-per-strip') || 1;
+                let hsnCode = $(this).find('option:selected').data('hsn-code') || '';
                 let tr = $(this).closest('tr');
                 tr.data('medicines-per-strip', perStrip);
+                
+                // Set HSN code
+                if (hsnCode && !tr.find('.hsn_input').val()) {
+                    tr.find('.hsn_input').val(hsnCode);
+                }
                 
                 // Recalculate strip based on current qty
                 let qty = parseFloat(tr.find('.qty_input').val());

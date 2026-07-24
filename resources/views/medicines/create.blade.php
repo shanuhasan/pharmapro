@@ -26,6 +26,12 @@
                             </div>
 
                             <div>
+                                <label for="hsn_code" class="block text-sm font-medium text-gray-700">HSN Code</label>
+                                <input type="text" name="hsn_code" id="hsn_code" value="{{ old('hsn_code') }}" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
+                                @error('hsn_code') <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
+                            </div>
+
+                            <div>
                                 <label for="category_id" class="block text-sm font-medium text-gray-700">Category <span class="text-red-500">*</span></label>
                                 <select name="category_id" id="category_id" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm" required>
                                     <option value="">Select Category</option>
