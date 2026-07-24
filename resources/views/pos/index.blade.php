@@ -111,14 +111,24 @@
                             </div>
                         </div>
 
-                        <div class="flex justify-between mb-4 items-center">
-                            <span class="text-gray-600">Tax (%)</span>
+                        <div class="flex justify-between mb-2 items-center">
+                            <span class="text-gray-600">SGST (%)</span>
                             <div class="flex items-center">
-                                <input type="number" id="summary_tax_pct" value="{{ setting('tax_percentage', 0) }}" min="0" step="any" class="w-16 text-right rounded-md border-gray-300 shadow-sm sm:text-sm mr-2">
-                                <span class="text-sm font-bold text-gray-700 w-20 text-right" id="summary_tax_amt_display">{{ setting('currency_symbol', '₹') }}0.00</span>
-                                <input type="hidden" id="summary_tax" value="0">
+                                <input type="number" id="summary_sgst_pct" value="{{ setting('sgst_percentage', 0) }}" min="0" step="any" class="w-16 text-right rounded-md border-gray-300 shadow-sm sm:text-sm mr-2">
+                                <span class="text-sm font-bold text-gray-700 w-20 text-right" id="summary_sgst_amt_display">{{ setting('currency_symbol', '₹') }}0.00</span>
+                                <input type="hidden" id="summary_sgst" value="0">
                             </div>
                         </div>
+
+                        <div class="flex justify-between mb-4 items-center">
+                            <span class="text-gray-600">CGST (%)</span>
+                            <div class="flex items-center">
+                                <input type="number" id="summary_cgst_pct" value="{{ setting('cgst_percentage', 0) }}" min="0" step="any" class="w-16 text-right rounded-md border-gray-300 shadow-sm sm:text-sm mr-2">
+                                <span class="text-sm font-bold text-gray-700 w-20 text-right" id="summary_cgst_amt_display">{{ setting('currency_symbol', '₹') }}0.00</span>
+                                <input type="hidden" id="summary_cgst" value="0">
+                            </div>
+                        </div>
+                        <input type="hidden" id="summary_tax" value="0">
 
                         <div class="flex justify-between mb-6 pt-4 border-t-2 border-gray-200">
                             <span class="text-xl font-bold text-gray-800">Total</span>
@@ -442,17 +452,24 @@
                 $('#summary_subtotal').text(currSym + subtotal.toFixed(2));
                 
                 let discountPct = parseFloat($('#summary_discount_pct').val()) || 0;
-                let taxPct = parseFloat($('#summary_tax_pct').val()) || 0;
+                let sgstPct = parseFloat($('#summary_sgst_pct').val()) || 0;
+                let cgstPct = parseFloat($('#summary_cgst_pct').val()) || 0;
                 
                 let discountAmt = (subtotal * discountPct) / 100;
                 let taxableAmount = subtotal - discountAmt;
-                let taxAmt = (taxableAmount * taxPct) / 100;
+                
+                let sgstAmt = (taxableAmount * sgstPct) / 100;
+                let cgstAmt = (taxableAmount * cgstPct) / 100;
+                let taxAmt = sgstAmt + cgstAmt;
                 
                 $('#summary_discount').val(discountAmt.toFixed(2));
+                $('#summary_sgst').val(sgstAmt.toFixed(2));
+                $('#summary_cgst').val(cgstAmt.toFixed(2));
                 $('#summary_tax').val(taxAmt.toFixed(2));
                 
                 $('#summary_discount_amt_display').text(currSym + discountAmt.toFixed(2));
-                $('#summary_tax_amt_display').text(currSym + taxAmt.toFixed(2));
+                $('#summary_sgst_amt_display').text(currSym + sgstAmt.toFixed(2));
+                $('#summary_cgst_amt_display').text(currSym + cgstAmt.toFixed(2));
                 
                 total = subtotal - discountAmt + taxAmt;
                 if(total < 0) total = 0;
@@ -464,7 +481,7 @@
                 calculateChange();
             }
 
-            $('#summary_discount_pct, #summary_tax_pct').on('input', updateTotals);
+            $('#summary_discount_pct, #summary_sgst_pct, #summary_cgst_pct').on('input', updateTotals);
             $('#paid_amount').on('input', calculateChange);
 
             function calculateChange() {

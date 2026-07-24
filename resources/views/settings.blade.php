@@ -70,9 +70,15 @@
                                     <input type="text" name="invoice_prefix" value="{{ setting('invoice_prefix', 'INV-') }}" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
                                 </div>
 
-                                <div class="mb-4">
-                                    <label class="block text-sm font-medium text-gray-700">Tax Percentage (%)</label>
-                                    <input type="number" step="0.01" name="tax_percentage" value="{{ setting('tax_percentage', '0') }}" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                                <div class="grid grid-cols-2 gap-4 mb-4">
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700">SGST (%)</label>
+                                        <input type="number" step="0.01" name="sgst_percentage" value="{{ setting('sgst_percentage', '0') }}" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700">CGST (%)</label>
+                                        <input type="number" step="0.01" name="cgst_percentage" value="{{ setting('cgst_percentage', '0') }}" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                                    </div>
                                 </div>
 
                                 <div class="mb-4">

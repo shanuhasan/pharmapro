@@ -114,12 +114,16 @@
                             <span class="text-gray-800 font-bold">{{ setting('currency_symbol', '₹') }}{{ number_format($sale->subtotal, 2) }}</span>
                         </div>
                         <div class="flex justify-between py-2 border-b">
-                            <span class="text-gray-600 font-semibold">Discount</span>
+                            <span class="text-gray-600 font-semibold">Discount ({{ $sale->subtotal > 0 ? round(($sale->discount / $sale->subtotal) * 100, 2) : 0 }}%)</span>
                             <span class="text-gray-800 font-bold">{{ setting('currency_symbol', '₹') }}{{ number_format($sale->discount, 2) }}</span>
                         </div>
                         <div class="flex justify-between py-2 border-b">
-                            <span class="text-gray-600 font-semibold">Tax</span>
-                            <span class="text-gray-800 font-bold">{{ setting('currency_symbol', '₹') }}{{ number_format($sale->tax, 2) }}</span>
+                            <span class="text-gray-600 font-semibold">SGST ({{ setting('sgst_percentage', '0') }}%)</span>
+                            <span class="text-gray-800 font-bold">{{ setting('currency_symbol', '₹') }}{{ number_format($sale->tax / 2, 2) }}</span>
+                        </div>
+                        <div class="flex justify-between py-2 border-b">
+                            <span class="text-gray-600 font-semibold">CGST ({{ setting('cgst_percentage', '0') }}%)</span>
+                            <span class="text-gray-800 font-bold">{{ setting('currency_symbol', '₹') }}{{ number_format($sale->tax / 2, 2) }}</span>
                         </div>
                         <div class="flex justify-between py-3">
                             <span class="text-gray-800 font-black text-xl">Total</span>

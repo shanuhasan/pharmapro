@@ -115,12 +115,16 @@
                             <td>{{ setting('currency_symbol', '₹') }}{{ number_format($sale->subtotal, 2) }}</td>
                         </tr>
                         <tr>
-                            <td>Discount:</td>
+                            <td>Discount ({{ $sale->subtotal > 0 ? round(($sale->discount / $sale->subtotal) * 100, 2) : 0 }}%):</td>
                             <td>{{ setting('currency_symbol', '₹') }}{{ number_format($sale->discount, 2) }}</td>
                         </tr>
                         <tr>
-                            <td>Tax:</td>
-                            <td>{{ setting('currency_symbol', '₹') }}{{ number_format($sale->tax, 2) }}</td>
+                            <td>SGST ({{ setting('sgst_percentage', '0') }}%):</td>
+                            <td>{{ setting('currency_symbol', '₹') }}{{ number_format($sale->tax / 2, 2) }}</td>
+                        </tr>
+                        <tr>
+                            <td>CGST ({{ setting('cgst_percentage', '0') }}%):</td>
+                            <td>{{ setting('currency_symbol', '₹') }}{{ number_format($sale->tax / 2, 2) }}</td>
                         </tr>
                         <tr class="total-row">
                             <td>Total:</td>
