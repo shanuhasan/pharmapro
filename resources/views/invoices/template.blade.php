@@ -81,8 +81,10 @@
         <table class="items-table">
             <thead>
                 <tr>
-                    <th>Item</th>
+                    <th>Products/Items</th>
+                    <th>HSN Code</th>
                     <th>Batch</th>
+                    <th>Expiry</th>
                     <th class="right">Price</th>
                     <th class="right">Qty</th>
                     <th class="right">Total</th>
@@ -92,7 +94,9 @@
                 @foreach($sale->saleItems as $item)
                 <tr>
                     <td>{{ $item->medicine->name }} <br><small style="color:#777">{{ $item->medicine->generic_name }}</small></td>
+                    <td>{{ $item->medicine->hsn_code ?? '-' }}</td>
                     <td>{{ $item->batch_number }}</td>
+                    <td>{{ $item->stock && $item->stock->expiry_date ? \Carbon\Carbon::parse($item->stock->expiry_date)->format('d-m-Y') : '-' }}</td>
                     <td class="right">{{ setting('currency_symbol', '₹') }}{{ number_format($item->sale_price, 2) }}</td>
                     <td class="right">{{ $item->quantity }}</td>
                     <td class="right">{{ setting('currency_symbol', '₹') }}{{ number_format($item->total, 2) }}</td>

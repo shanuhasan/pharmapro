@@ -83,8 +83,10 @@
                 <table class="w-full text-left border-collapse mb-8">
                     <thead>
                         <tr class="bg-gray-100 text-gray-600 text-sm uppercase">
-                            <th class="py-3 px-4 rounded-tl-lg font-bold">Item</th>
+                            <th class="py-3 px-4 rounded-tl-lg font-bold">Products/Items</th>
+                            <th class="py-3 px-4 font-bold">HSN Code</th>
                             <th class="py-3 px-4 font-bold">Batch</th>
+                            <th class="py-3 px-4 font-bold">Expiry</th>
                             <th class="py-3 px-4 text-right font-bold">Price</th>
                             <th class="py-3 px-4 text-right font-bold">Qty</th>
                             <th class="py-3 px-4 text-right rounded-tr-lg font-bold">Total</th>
@@ -94,7 +96,9 @@
                         @foreach($sale->saleItems as $item)
                         <tr class="border-b border-gray-100">
                             <td class="py-4 px-4 font-medium text-gray-800">{{ $item->medicine->name }} <span class="text-xs text-gray-500 block">{{ $item->medicine->generic_name }}</span></td>
+                            <td class="py-4 px-4 text-gray-600">{{ $item->medicine->hsn_code ?? '-' }}</td>
                             <td class="py-4 px-4 text-gray-600">{{ $item->batch_number }}</td>
+                            <td class="py-4 px-4 text-gray-600">{{ $item->stock && $item->stock->expiry_date ? \Carbon\Carbon::parse($item->stock->expiry_date)->format('d-m-Y') : '-' }}</td>
                             <td class="py-4 px-4 text-right text-gray-600">{{ setting('currency_symbol', '₹') }}{{ number_format($item->sale_price, 2) }}</td>
                             <td class="py-4 px-4 text-right font-bold text-gray-800">{{ $item->quantity }}</td>
                             <td class="py-4 px-4 text-right font-bold text-green-600">{{ setting('currency_symbol', '₹') }}{{ number_format($item->total, 2) }}</td>
