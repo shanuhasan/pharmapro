@@ -95,6 +95,13 @@
                         </div>
 
                         <hr class="my-4">
+                        <h3 class="text-lg font-bold mb-4">Invoice Details</h3>
+                        <div class="mb-6 p-3 bg-gray-50 border border-gray-200 rounded-md">
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Invoice Date</label>
+                            <input type="date" id="sale_date" class="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-2" value="{{ date('Y-m-d') }}">
+                        </div>
+
+                        <hr class="my-4">
                         <h3 class="text-lg font-bold mb-4">Payment Summary</h3>
                         
                         <div class="flex justify-between mb-2">
@@ -574,6 +581,7 @@
                     new_customer_address: $('#new_customer_address').val(),
                     doctor_name: $('#doctor_name').val(),
                     doctor_address: $('#doctor_address').val(),
+                    sale_date: $('#sale_date').val(),
                     subtotal: subtotal.toFixed(2),
                     discount: parseFloat($('#summary_discount').val()) || 0,
                     tax: parseFloat($('#summary_tax').val()) || 0,

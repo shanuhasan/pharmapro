@@ -65,6 +65,7 @@ class SaleController extends Controller
             'items.*.quantity' => 'required|integer|min:1',
             'items.*.sale_price' => 'required|numeric|min:0',
             'items.*.total' => 'required|numeric|min:0',
+            'sale_date' => 'nullable|date',
         ]);
 
         DB::beginTransaction();
@@ -85,9 +86,10 @@ class SaleController extends Controller
                 : auth()->user()->branch_id;
             
             // Generate Invoice Number
+            $saleDate = $request->sale_date ? \Carbon\Carbon::parse($request->sale_date) : now();
             $prefix = setting('invoice_prefix', 'INV-');
-            $dateStr = now()->format('Ymd');
-            $lastSale = Sale::whereDate('created_at', today())->where('branch_id', $branchId)->count();
+            $dateStr = $saleDate->format('Ymd');
+            $lastSale = Sale::whereDate('sale_date', $saleDate->format('Y-m-d'))->where('branch_id', $branchId)->count();
             $invoiceNumber = $prefix . $branchId . '-' . $dateStr . '-' . str_pad($lastSale + 1, 3, '0', STR_PAD_LEFT);
 
             // Create Sale Record
@@ -100,7 +102,7 @@ class SaleController extends Controller
                 'doctor_name' => $request->doctor_name ?? null,
                 'doctor_address' => $request->doctor_address ?? null,
                 'invoice_number' => $invoiceNumber,
-                'sale_date' => date('Y-m-d'),
+                'sale_date' => $saleDate->format('Y-m-d'),
                 'subtotal' => $request->subtotal,
                 'discount' => $request->discount,
                 'tax' => $request->tax,

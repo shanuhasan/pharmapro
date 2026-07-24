@@ -7,13 +7,40 @@
     <style>
         @media print {
             .no-print { display: none !important; }
-            body { font-size: 12pt; }
+            body { font-size: 11pt; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
         }
+        body { font-family: Arial, sans-serif; }
+        .invoice-box {
+            max-width: 800px;
+            margin: auto;
+            border: 1px solid #000;
+        }
+        .b-bottom { border-bottom: 1px solid #000; }
+        .b-right { border-right: 1px solid #000; }
+        .b-left { border-left: 1px solid #000; }
+        .b-top { border-top: 1px solid #000; }
+        
+        .items-table { width: 100%; border-collapse: collapse; }
+        .items-table th, .items-table td {
+            border: 1px solid #000;
+            padding: 4px 6px;
+            text-align: center;
+            font-size: 12px;
+        }
+        .items-table th {
+            font-weight: bold;
+        }
+        .items-table td.text-left { text-align: left; }
+        .items-table td.text-right { text-align: right; }
+        .no-border-bottom td { border-bottom: none; border-top: none; }
+        
+        .summary-box { width: 100%; border-collapse: collapse; }
+        .summary-box td { border: 1px solid #000; padding: 4px 6px; font-size: 12px; }
     </style>
 </head>
-<body class="bg-gray-100">
+<body class="bg-gray-100 py-10 print:py-0">
 
-    <div class="max-w-4xl mx-auto mt-10 no-print flex justify-end space-x-4 mb-4">
+    <div class="max-w-4xl mx-auto mb-4 no-print flex justify-end space-x-4">
         <button onclick="window.print()" class="bg-blue-600 text-white px-4 py-2 rounded shadow font-bold">
             <svg class="w-4 h-4 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path></svg>
             Print Invoice
@@ -21,117 +48,136 @@
         <button onclick="window.close()" class="bg-gray-600 text-white px-4 py-2 rounded shadow font-bold">Close</button>
     </div>
 
-    <div class="max-w-4xl mx-auto bg-white p-10 shadow-lg border-t-8 border-blue-600 print:border-none print:shadow-none print:p-0 print:mt-0">
+    <div class="invoice-box bg-white">
         
-        <div class="flex justify-between items-start mb-8 border-b-2 border-gray-200 pb-6">
-            <div>
-                @if(setting('pharmacy_logo'))
-                    <img src="{{ asset(setting('pharmacy_logo')) }}" alt="Logo" class="h-16 mb-2 object-contain">
-                @endif
-                <!-- <h2 class="text-2xl font-bold text-gray-800">{{ setting('pharmacy_name', 'PharmaPro') }}</h2> -->
-                <h1 class="text-4xl font-black text-blue-600 mb-2">INVOICE</h1>
-                <p class="text-gray-500 font-bold">#{{ $sale->invoice_number }}</p>
-                <p class="text-gray-500">Date: {{ \Carbon\Carbon::parse($sale->sale_date)->format('d M Y') }}</p>
-            </div>
-            <div class="text-right">
-                <h2 class="text-2xl font-bold text-gray-800">{{ setting('pharmacy_name', 'PharmaPro') }}</h2>
-                <p class="text-gray-600">{{ $sale->branch->name ?? '' }}</p>
-                <p class="text-gray-600">{{ $sale->branch->address ?? '' }}</p>
+        <!-- Header Section -->
+        <div class="flex w-full b-bottom">
+            <!-- Left Info -->
+            <div class="w-5/12 p-2 b-right text-sm leading-tight">
+                <div class="font-bold text-lg mb-1">{{ strtoupper(setting('pharmacy_name', 'PharmaPro')) }}</div>
+                <div>{{ setting('pharmacy_address', 'Pharmacy Address Here') }}</div>
+                <div>Phone : {{ setting('pharmacy_contact', '1234567890') }}</div>
                 @if(setting('pharmacy_gst'))
-                    <p class="text-gray-600 font-bold">GST No: {{ setting('pharmacy_gst') }}</p>
+                    <div class="mt-2 font-bold">GSTIN-{{ setting('pharmacy_gst') }}</div>
                 @endif
+            </div>
+            
+            <!-- Middle Info -->
+            <div class="w-3/12 p-2 b-right flex items-center justify-center">
+                <div class="font-bold text-xl tracking-wider text-center">GST INVOICE</div>
+            </div>
+            
+            <!-- Right Info -->
+            <div class="w-4/12 p-2 text-sm leading-tight">
+                <div class="font-bold">Patient Name : {{ strtoupper($sale->customer->name ?? $sale->customer_name ?? 'CASH') }}</div>
+                @if($sale->customer || $sale->customer_address)
+                <div>Patient Address : {{ $sale->customer->address ?? $sale->customer_address }}</div>
+                @endif
+                <div>Dr Name : {{ strtoupper($sale->doctor_name ?? 'SELF') }}</div>
+                <div class="mt-2">Invoice No. : {{ $sale->invoice_number }}</div>
+                <div>Date : {{ \Carbon\Carbon::parse($sale->sale_date)->format('d-m-Y') }}</div>
             </div>
         </div>
 
-        <div class="flex justify-between mb-8">
-            <div>
-                <p class="text-gray-500 text-sm font-bold uppercase tracking-wider mb-1">Billed To</p>
-                @if($sale->customer)
-                    <p class="font-bold text-gray-800 text-lg">{{ $sale->customer->name }}</p>
-                    <p class="text-gray-600">{{ $sale->customer->phone }}</p>
-                    <p class="text-gray-600">{{ $sale->customer->address }}</p>
-                @else
-                    <p class="font-bold text-gray-800 text-lg">{{ $sale->customer_name ?? 'Walk-in Customer' }}</p>
-                    @if($sale->customer_phone)
-                        <p class="text-gray-600">{{ $sale->customer_phone }}</p>
-                    @endif
-                    @if($sale->customer_address)
-                        <p class="text-gray-600">{{ $sale->customer_address }}</p>
-                    @endif
-                @endif
-            </div>
-            <div class="text-right">
-                <p class="text-gray-500 text-sm font-bold uppercase tracking-wider mb-1">Payment Details</p>
-                <p class="text-gray-800"><span class="font-semibold">Method:</span> {{ ucfirst($sale->payment_method) }}</p>
-                <p class="text-gray-800"><span class="font-semibold">Cashier:</span> {{ $sale->user->name ?? 'System' }}</p>
-                
-                @if($sale->doctor_name)
-                <div class="mt-4">
-                    <p class="text-gray-500 text-sm font-bold uppercase tracking-wider mb-1">Prescribing Doctor</p>
-                    <p class="font-bold text-gray-800">{{ $sale->doctor_name }}</p>
-                    @if($sale->doctor_address)
-                        <p class="text-gray-600 text-sm">{{ $sale->doctor_address }}</p>
-                    @endif
-                </div>
-                @endif
-            </div>
-        </div>
-
-        <table class="w-full text-left border-collapse mb-8">
+        <!-- Items Table -->
+        <table class="items-table border-t-0 border-l-0 border-r-0">
             <thead>
-                <tr class="bg-gray-100 text-gray-600 text-sm uppercase border-b-2 border-gray-300">
-                    <th class="py-3 px-4 font-bold">Products/Items</th>
-                    <th class="py-3 px-4 font-bold">HSN Code</th>
-                    <th class="py-3 px-4 font-bold">Batch</th>
-                    <th class="py-3 px-4 font-bold">Expiry</th>
-                    <th class="py-3 px-4 text-right font-bold">Price</th>
-                    <th class="py-3 px-4 text-right font-bold">Qty</th>
-                    <th class="py-3 px-4 text-right font-bold">Total</th>
+                <tr>
+                    <th class="w-8">SN</th>
+                    <th class="text-left">PRODUCT NAME</th>
+                    <th>PACK</th>
+                    <th>HSN</th>
+                    <th>BATCH</th>
+                    <th>EXP</th>
+                    <th>QTY</th>
+                    <th class="text-right">MRP</th>
+                    <th class="text-right">RATE</th>
+                    <th>SGST</th>
+                    <th>CGST</th>
+                    <th class="text-right">AMOUNT</th>
                 </tr>
             </thead>
             <tbody>
-                @foreach($sale->saleItems as $item)
-                <tr class="border-b border-gray-200">
-                    <td class="py-3 px-4 font-medium text-gray-800">{{ $item->medicine->name }}</td>
-                    <td class="py-3 px-4 text-gray-600">{{ $item->medicine->hsn_code ?? '-' }}</td>
-                    <td class="py-3 px-4 text-gray-600">{{ $item->batch_number }}</td>
-                    <td class="py-3 px-4 text-gray-600">{{ $item->stock && $item->stock->expiry_date ? \Carbon\Carbon::parse($item->stock->expiry_date)->format('d-m-Y') : '-' }}</td>
-                    <td class="py-3 px-4 text-right text-gray-600">{{ setting('currency_symbol', '₹') }}{{ number_format($item->sale_price, 2) }}</td>
-                    <td class="py-3 px-4 text-right font-bold text-gray-800">{{ $item->quantity }}</td>
-                    <td class="py-3 px-4 text-right font-bold text-green-600">{{ setting('currency_symbol', '₹') }}{{ number_format($item->total, 2) }}</td>
+                @foreach($sale->saleItems as $index => $item)
+                <tr class="no-border-bottom">
+                    <td>{{ $index + 1 }}</td>
+                    <td class="text-left font-bold">{{ strtoupper($item->medicine->name) }}</td>
+                    <td>{{ $item->medicine->medicines_per_strip ?? 1 }}</td>
+                    <td>{{ $item->hsn_code }}</td>
+                    <td>{{ strtoupper($item->batch_number) }}</td>
+                    <td>{{ $item->stock && $item->stock->expiry_date ? \Carbon\Carbon::parse($item->stock->expiry_date)->format('m/y') : '-' }}</td>
+                    <td>{{ $item->quantity }}</td>
+                    <td class="text-right">{{ number_format($item->sale_price, 2) }}</td>
+                    <td class="text-right">{{ number_format($item->sale_price, 2) }}</td>
+                    <td>{{ setting('sgst_percentage', '0') }}</td>
+                    <td>{{ setting('cgst_percentage', '0') }}</td>
+                    <td class="text-right font-bold">{{ number_format($item->total, 2) }}</td>
                 </tr>
                 @endforeach
+                
+                <!-- Empty rows for spacing to match physical invoice feel -->
+                @for($i = $sale->saleItems->count(); $i < 8; $i++)
+                <tr class="no-border-bottom text-transparent">
+                    <td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td>
+                </tr>
+                @endfor
+                
+                <!-- Bottom border line for the items area -->
+                <tr class="h-0"><td colspan="12" class="p-0 border-b border-black"></td></tr>
             </tbody>
         </table>
 
-        <div class="flex justify-end mb-8">
-            <div class="w-1/2">
-                <div class="flex justify-between py-2 border-b border-gray-200">
-                    <span class="text-gray-600 font-semibold">Subtotal</span>
-                    <span class="text-gray-800 font-bold">{{ setting('currency_symbol', '₹') }}{{ number_format($sale->subtotal, 2) }}</span>
+        <!-- Summary Section -->
+        <div class="flex w-full">
+            <div class="w-8/12 p-3 text-xs leading-tight b-right flex flex-col justify-between">
+                <div>
+                    <span class="font-bold underline">Terms & Conditions</span><br>
+                    Goods once sold will not be taken back or exchanged.<br>
+                    Bills not paid due date will attract 24% interest.<br>
+                    All disputes subject to Jurisdiction only.<br>
+                    Prescribed Sales Tax declaration will be given.<br><br>
+                    @if(setting('sgst_percentage') > 0 || setting('cgst_percentage') > 0)
+                        GST Details: {{ $sale->subtotal }} * {{ setting('sgst_percentage') + setting('cgst_percentage') }}% = {{ number_format($sale->tax, 2) }}
+                    @endif
                 </div>
-                <div class="flex justify-between py-2 border-b border-gray-200">
-                    <span class="text-gray-600 font-semibold">Discount ({{ $sale->subtotal > 0 ? round(($sale->discount / $sale->subtotal) * 100, 2) : 0 }}%)</span>
-                    <span class="text-gray-800 font-bold">{{ setting('currency_symbol', '₹') }}{{ number_format($sale->discount, 2) }}</span>
-                </div>
-                <div class="flex justify-between py-2 border-b border-gray-200">
-                    <span class="text-gray-600 font-semibold">SGST ({{ setting('sgst_percentage', '0') }}%)</span>
-                    <span class="text-gray-800 font-bold">{{ setting('currency_symbol', '₹') }}{{ number_format($sale->tax / 2, 2) }}</span>
-                </div>
-                <div class="flex justify-between py-2 border-b border-gray-200">
-                    <span class="text-gray-600 font-semibold">CGST ({{ setting('cgst_percentage', '0') }}%)</span>
-                    <span class="text-gray-800 font-bold">{{ setting('currency_symbol', '₹') }}{{ number_format($sale->tax / 2, 2) }}</span>
-                </div>
-                <div class="flex justify-between py-3">
-                    <span class="text-gray-800 font-black text-xl">Total</span>
-                    <span class="text-green-600 font-black text-xl">{{ setting('currency_symbol', '₹') }}{{ number_format($sale->total_amount, 2) }}</span>
+                
+                <div class="mt-4">
+                    <span class="font-bold">Rs. {{ \Illuminate\Support\Number::spell($sale->total_amount) }} Only</span>
                 </div>
             </div>
+            
+            <div class="w-4/12 flex flex-col">
+                <table class="summary-box border-none w-full h-full">
+                    <tr>
+                        <td class="font-bold border-t-0 border-l-0">SUB TOTAL</td>
+                        <td class="text-right font-bold border-t-0 border-r-0">{{ number_format($sale->subtotal, 2) }}</td>
+                    </tr>
+                    <tr>
+                        <td class="border-l-0">SGST {{ setting('sgst_percentage', '0') }} %</td>
+                        <td class="text-right border-r-0">{{ number_format($sale->tax / 2, 2) }}</td>
+                    </tr>
+                    <tr>
+                        <td class="border-l-0">CGST {{ setting('cgst_percentage', '0') }} %</td>
+                        <td class="text-right border-r-0">{{ number_format($sale->tax / 2, 2) }}</td>
+                    </tr>
+                    <tr>
+                        <td class="border-l-0">Roundoff</td>
+                        <td class="text-right border-r-0">0.00</td>
+                    </tr>
+                    <tr class="h-full align-bottom">
+                        <td class="font-bold text-lg border-b-0 border-l-0 pt-4">GRAND TOTAL</td>
+                        <td class="text-right font-bold text-lg border-b-0 border-r-0 pt-4">{{ number_format($sale->total_amount, 2) }}</td>
+                    </tr>
+                </table>
+            </div>
         </div>
-
-        <div class="text-center text-gray-500 text-sm mt-12 border-t pt-8">
-            <p class="font-bold text-gray-600 mb-1">Thank you for your business!</p>
-            <!-- <p>Medicines once sold cannot be returned or exchanged without a valid receipt.</p> -->
+        
+        <!-- Signatory Section -->
+        <div class="flex w-full b-top p-2 text-sm">
+            <div class="w-8/12"></div>
+            <div class="w-4/12 text-center pt-8">
+                <div class="font-bold border-t border-gray-400 inline-block px-4">Authorised Signatory</div>
+            </div>
         </div>
 
     </div>

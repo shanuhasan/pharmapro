@@ -96,7 +96,7 @@
                         @foreach($sale->saleItems as $item)
                         <tr class="border-b border-gray-100">
                             <td class="py-4 px-4 font-medium text-gray-800">{{ $item->medicine->name }} <span class="text-xs text-gray-500 block">{{ $item->medicine->generic_name }}</span></td>
-                            <td class="py-4 px-4 text-gray-600">{{ $item->medicine->hsn_code ?? '-' }}</td>
+                            <td class="py-4 px-4 text-gray-600">{{ $item->hsn_code }}</td>
                             <td class="py-4 px-4 text-gray-600">{{ $item->batch_number }}</td>
                             <td class="py-4 px-4 text-gray-600">{{ $item->stock && $item->stock->expiry_date ? \Carbon\Carbon::parse($item->stock->expiry_date)->format('d-m-Y') : '-' }}</td>
                             <td class="py-4 px-4 text-right text-gray-600">{{ setting('currency_symbol', '₹') }}{{ number_format($item->sale_price, 2) }}</td>
