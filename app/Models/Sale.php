@@ -9,7 +9,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Sale extends Model
 {
-    use HasFactory;
+    use HasFactory, \App\Traits\HasPharmacy;
 
     protected $guarded = [];
 
@@ -33,3 +33,4 @@ class Sale extends Model
         return $this->belongsTo(User::class, 'created_by');
     }
 }
+

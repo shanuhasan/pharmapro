@@ -9,7 +9,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Medicine extends Model
 {
-    use HasFactory;
+    use HasFactory, \App\Traits\HasPharmacy;
 
     protected $guarded = [];
 
@@ -38,3 +38,4 @@ class Medicine extends Model
         return $this->hasMany(PurchaseItem::class);
     }
 }
+

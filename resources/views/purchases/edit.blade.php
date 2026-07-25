@@ -113,7 +113,9 @@
         @endforeach
     </select>
 
-    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="{{ asset('vendor/jquery/jquery.min.js') }}"></script>
+    <link href="{{ asset('vendor/select2/select2.min.css') }}" rel="stylesheet" />
+    <script src="{{ asset('vendor/select2/select2.min.js') }}"></script>
     <script>
         $(document).ready(function() {
             let rowIdx = 0;
@@ -176,6 +178,12 @@
                 </tr>`;
                 
                 $('#items_tbody').append(tr);
+                
+                // Initialize select2 on the new dropdown
+                $(`#row_${rowIdx}_1 .medicine_select`).select2({
+                    width: '100%',
+                    placeholder: 'Select Medicine'
+                });
                 
                 if (item) {
                     // Set data attribute for medicines-per-strip so subsequent triggers work correctly

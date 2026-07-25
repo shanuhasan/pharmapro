@@ -12,6 +12,10 @@ class DashboardController extends Controller
 {
     public function index(Request $request)
     {
+        if (auth()->user()->role === 'super_admin') {
+            return redirect()->route('super_admin.dashboard');
+        }
+
         $branchId = auth()->user()->role === 'admin' ? null : auth()->user()->branch_id;
         $today = Carbon::today();
 

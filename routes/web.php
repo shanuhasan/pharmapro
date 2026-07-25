@@ -11,6 +11,13 @@ Route::get('/dashboard', [\App\Http\Controllers\DashboardController::class, 'ind
     ->middleware(['auth', 'verified'])
     ->name('dashboard');
 
+Route::middleware(['auth', 'super_admin'])->prefix('super-admin')->name('super_admin.')->group(function () {
+    Route::get('/dashboard', [\App\Http\Controllers\SuperAdminController::class, 'dashboard'])->name('dashboard');
+    Route::get('/pharmacies', [\App\Http\Controllers\SuperAdminController::class, 'pharmacies'])->name('pharmacies');
+    Route::get('/pharmacies/create', [\App\Http\Controllers\SuperAdminController::class, 'createPharmacy'])->name('pharmacies.create');
+    Route::post('/pharmacies', [\App\Http\Controllers\SuperAdminController::class, 'storePharmacy'])->name('pharmacies.store');
+});
+
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');

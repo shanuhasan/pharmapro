@@ -26,7 +26,21 @@ class AuthenticatedSessionController extends Controller
     {
         $request->authenticate();
 
+        if (Auth::user()->role !== 'super_admin' && is_null(Auth::user()->branch_id) && is_null(Auth::user()->pharmacy_id)) {
+            Auth::guard('web')->logout();
+            $request->session()->invalidate();
+            $request->session()->regenerateToken();
+            
+            return redirect()->route('login')->withErrors([
+                'email' => 'Your account is not associated with any pharmacy or branch. Please contact support.',
+            ]);
+        }
+
         $request->session()->regenerate();
+
+        if (Auth::user()->role === 'super_admin') {
+            return redirect()->intended(route('super_admin.dashboard', absolute: false));
+        }
 
         return redirect()->intended(route('dashboard', absolute: false));
     }

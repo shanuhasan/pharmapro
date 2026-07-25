@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class Customer extends Model
 {
-    use HasFactory;
+    use HasFactory, \App\Traits\HasPharmacy;
 
     protected $guarded = [];
 
@@ -16,3 +16,4 @@ class Customer extends Model
         return $this->hasMany(Sale::class);
     }
 }
+

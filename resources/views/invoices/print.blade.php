@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <title>Print Invoice - {{ $sale->invoice_number }}</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="{{ asset('vendor/tailwindcss/tailwindcss.js') }}"></script>
     <style>
         @media print {
             .no-print { display: none !important; }
