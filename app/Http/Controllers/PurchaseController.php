@@ -388,6 +388,23 @@ class PurchaseController extends Controller
                         }
                     }
 
+                    $qty = (float)($row[10] ?? 0);
+                    $fqty = (float)($row[11] ?? 0);
+                    $srate = (float)($row[14] ?? 0);
+                    $dis = (float)($row[16] ?? 0);
+                    
+                    // The user's exact formula for the correct row total
+                    // Note: If 'dis' is a percentage, this might need to be ($qty * $srate) * (1 - $dis/100)
+                    // but we strictly follow (qty * srate) - dis as requested.
+                    $rowTotal = ($qty * $srate) - $dis;
+                    
+                    // Total inventory quantity should include free quantity
+                    $totalQty = $qty + $fqty;
+                    
+                    // Since the frontend UI calculates "Total = Qty * Purchase Price", 
+                    // we must divide the rowTotal by the totalQty so the UI total matches the expected bill exactly.
+                    $purchasePrice = $totalQty > 0 ? ($rowTotal / $totalQty) : $srate;
+
                     $items[] = [
                         'medicine_name' => $medicineName,
                         'medicine_id' => $medicine ? $medicine->id : null,
@@ -395,8 +412,8 @@ class PurchaseController extends Controller
                         'hsn_code' => $row[25] ?? ($medicine ? $medicine->hsn_code : ''),
                         'batch_number' => $row[8] ?? null,
                         'expiry_date' => $formattedExpiry,
-                        'quantity' => (int)($row[10] ?? 0) + (int)($row[11] ?? 0),
-                        'purchase_price' => (float)($row[13] ?? 0),
+                        'quantity' => $totalQty,
+                        'purchase_price' => $purchasePrice,
                         'sale_price' => (float)($row[15] ?? 0),
                     ];
                 }
