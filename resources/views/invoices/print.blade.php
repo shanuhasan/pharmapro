@@ -69,7 +69,7 @@
             
             <!-- Right Info -->
             <div class="w-4/12 p-2 text-sm leading-tight">
-                <div class="font-bold">Patient Name : {{ strtoupper($sale->customer->name ?? $sale->customer_name ?? 'Aftab Ahmed') }}</div>
+                <div class="font-bold">Patient Name : {{ strtoupper($sale->customer->name ?? $sale->customer_name ?? '') }}</div>
                 @if($sale->customer || $sale->customer_address)
                 <div>Patient Address : {{ $sale->customer->address ?? $sale->customer_address }}</div>
                 @endif
@@ -160,10 +160,16 @@
                         <td class="border-l-0">CGST {{ setting('cgst_percentage', '0') }} %</td>
                         <td class="text-right border-r-0">{{ number_format($sale->tax / 2, 2) }}</td>
                     </tr>
+                    @if($sale->discount > 0)
                     <tr>
+                        <td class="border-l-0">Discount</td>
+                        <td class="text-right border-r-0">{{ number_format($sale->discount, 2) }}</td>
+                    </tr>
+                    @endif
+                    <!-- <tr>
                         <td class="border-l-0">Roundoff</td>
                         <td class="text-right border-r-0">0.00</td>
-                    </tr>
+                    </tr> -->
                     <tr class="h-full align-bottom">
                         <td class="font-bold text-lg border-b-0 border-l-0 pt-4">GRAND TOTAL</td>
                         <td class="text-right font-bold text-lg border-b-0 border-r-0 pt-4">{{ number_format($sale->total_amount, 2) }}</td>

@@ -456,18 +456,25 @@
 
             // --- 5. CALCULATE TOTALS ---
             function updateTotals() {
-                $('#summary_subtotal').text(currSym + subtotal.toFixed(2));
+                let cart_total = 0;
+                cart.forEach(item => cart_total += item.total);
                 
                 let discountPct = parseFloat($('#summary_discount_pct').val()) || 0;
                 let sgstPct = parseFloat($('#summary_sgst_pct').val()) || 0;
                 let cgstPct = parseFloat($('#summary_cgst_pct').val()) || 0;
+                let total_tax_pct = sgstPct + cgstPct;
                 
-                let discountAmt = (subtotal * discountPct) / 100;
-                let taxableAmount = subtotal - discountAmt;
+                let discountAmt = (cart_total * discountPct) / 100;
+                let net_total = cart_total - discountAmt;
                 
-                let sgstAmt = (taxableAmount * sgstPct) / 100;
-                let cgstAmt = (taxableAmount * cgstPct) / 100;
-                let taxAmt = sgstAmt + cgstAmt;
+                let taxable_value = net_total / (1 + (total_tax_pct / 100));
+                let taxAmt = net_total - taxable_value;
+                let sgstAmt = taxAmt / 2;
+                let cgstAmt = taxAmt / 2;
+                
+                subtotal = cart_total - taxAmt;
+                
+                $('#summary_subtotal').text(currSym + cart_total.toFixed(2));
                 
                 $('#summary_discount').val(discountAmt.toFixed(2));
                 $('#summary_sgst').val(sgstAmt.toFixed(2));
@@ -478,7 +485,7 @@
                 $('#summary_sgst_amt_display').text(currSym + sgstAmt.toFixed(2));
                 $('#summary_cgst_amt_display').text(currSym + cgstAmt.toFixed(2));
                 
-                total = subtotal - discountAmt + taxAmt;
+                total = net_total;
                 if(total < 0) total = 0;
                 
                 $('#summary_total').text(currSym + total.toFixed(2));
