@@ -37,7 +37,8 @@ class SettingController extends Controller
         }
 
         // Clear cache so changes reflect instantly
-        Cache::forget('app_settings');
+        $pharmacyId = auth()->check() ? auth()->user()->pharmacy_id : 'global';
+        Cache::forget('app_settings_' . $pharmacyId);
 
         return redirect()->back()->with('success', 'Settings updated successfully.');
     }
