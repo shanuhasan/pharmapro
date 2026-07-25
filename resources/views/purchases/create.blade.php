@@ -67,17 +67,17 @@
                             <table class="min-w-full divide-y divide-gray-200 border" id="items_table">
                                 <thead class="bg-gray-50">
                                     <tr>
-                                        <th class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Medicine</th>
-                                        <th class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">HSN Code</th>
-                                        <th class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Batch</th>
-                                        <th class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Expiry</th>
-                                        <th class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Strip</th>
-                                        <th class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Qty</th>
-                                        <th class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Strip Price</th>
-                                        <th class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Unit Purchase Price</th>
-                                        <th class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Strip Sale Price</th>
-                                        <th class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Unit Sale Price</th>
-                                        <th class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Action</th>
+                                        <th class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[200px]">Medicine</th>
+                                        <th class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[120px]">HSN Code</th>
+                                        <th class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[120px]">Batch</th>
+                                        <th class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[150px]">Expiry</th>
+                                        <th class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[100px]">Strip</th>
+                                        <th class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[100px]">Qty</th>
+                                        <th class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[120px]">Strip Price</th>
+                                        <th class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[150px]">Unit Purchase Price</th>
+                                        <th class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[120px]">Strip Sale Price</th>
+                                        <th class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[150px]">Unit Sale Price</th>
+                                        <th class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[80px]">Action</th>
                                     </tr>
                                 </thead>
                                 <tbody class="bg-white divide-y divide-gray-200" id="items_tbody">
@@ -191,7 +191,7 @@
             });
 
             // When strip is entered, calculate qty
-            $(document).on('input', '.strip_input', function() {
+            $(document).on('input change keyup', '.strip_input', function() {
                 let tr = $(this).closest('tr');
                 let perStrip = tr.data('medicines-per-strip') || tr.find('.medicine_select option:selected').data('medicines-per-strip') || 1;
                 let strips = parseFloat($(this).val());
@@ -204,7 +204,7 @@
             });
 
             // When qty is entered, calculate strip
-            $(document).on('input', '.qty_input', function() {
+            $(document).on('input change keyup', '.qty_input', function() {
                 let tr = $(this).closest('tr');
                 let perStrip = tr.data('medicines-per-strip') || tr.find('.medicine_select option:selected').data('medicines-per-strip') || 1;
                 let qty = parseFloat($(this).val());
@@ -217,7 +217,7 @@
             });
 
             // When strip price is entered, calculate unit purchase price
-            $(document).on('input', '.strip_price_input', function() {
+            $(document).on('input change keyup', '.strip_price_input', function() {
                 let tr = $(this).closest('tr');
                 let perStrip = tr.data('medicines-per-strip') || tr.find('.medicine_select option:selected').data('medicines-per-strip') || 1;
                 let stripPrice = parseFloat($(this).val());
@@ -230,7 +230,7 @@
             });
 
             // When unit purchase price is entered, calculate strip price
-            $(document).on('input', '.purchase_price_input', function() {
+            $(document).on('input change keyup', '.purchase_price_input', function() {
                 let tr = $(this).closest('tr');
                 let perStrip = tr.data('medicines-per-strip') || tr.find('.medicine_select option:selected').data('medicines-per-strip') || 1;
                 let unitPrice = parseFloat($(this).val());
@@ -243,7 +243,7 @@
             });
 
             // When strip sale price is entered, calculate unit sale price
-            $(document).on('input', '.strip_sale_price_input', function() {
+            $(document).on('input change keyup', '.strip_sale_price_input', function() {
                 let tr = $(this).closest('tr');
                 let perStrip = tr.data('medicines-per-strip') || tr.find('.medicine_select option:selected').data('medicines-per-strip') || 1;
                 let stripSalePrice = parseFloat($(this).val());
@@ -256,7 +256,7 @@
             });
 
             // When unit sale price is entered, calculate strip sale price
-            $(document).on('input', '.sale_price_input', function() {
+            $(document).on('input change keyup', '.sale_price_input', function() {
                 let tr = $(this).closest('tr');
                 let perStrip = tr.data('medicines-per-strip') || tr.find('.medicine_select option:selected').data('medicines-per-strip') || 1;
                 let unitSalePrice = parseFloat($(this).val());
