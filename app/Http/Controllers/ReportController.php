@@ -195,7 +195,7 @@ class ReportController extends Controller
     public function expiry(Request $request)
     {
         $branchId = $this->getBranchId($request);
-        $days = $request->get('days', 30);
+        $days = (int) $request->get('days', 30);
         $threshold = Carbon::today()->addDays($days);
 
         if ($request->ajax()) {

@@ -53,10 +53,22 @@ class PurchaseController extends Controller
 
     public function store(Request $request, StockService $stockService)
     {
-        $validated = $request->validate([
+        $pharmacyId = auth()->user()->pharmacy_id;
+        if (!$pharmacyId && $request->branch_id) {
+            $branch = \App\Models\Branch::find($request->branch_id);
+            if ($branch) $pharmacyId = $branch->pharmacy_id;
+        }
+
+        $validator = \Illuminate\Support\Facades\Validator::make($request->all(), [
             'branch_id' => 'required|exists:branches,id',
             'supplier_id' => 'required|exists:suppliers,id',
-            'invoice_number' => 'required|string|unique:purchases,invoice_number',
+            'invoice_number' => [
+                'required',
+                'string',
+                \Illuminate\Validation\Rule::unique('purchases', 'invoice_number')->where(function ($query) use ($pharmacyId) {
+                    return $query->where('pharmacy_id', $pharmacyId);
+                })
+            ],
             'purchase_date' => 'required|date',
             'items' => 'required|array|min:1',
             'items.*.medicine_id' => 'required|exists:medicines,id',
@@ -67,6 +79,12 @@ class PurchaseController extends Controller
             'items.*.purchase_price' => 'required|numeric|min:0',
             'items.*.sale_price' => 'required|numeric|min:0',
         ]);
+
+        if ($validator->fails()) {
+            \Log::error('Purchase validation failed', $validator->errors()->toArray());
+            return back()->withErrors($validator)->withInput();
+        }
+        $validated = $validator->validated();
 
         DB::beginTransaction();
         try {
@@ -108,6 +126,7 @@ class PurchaseController extends Controller
             return redirect()->route('purchases.index')->with('success', 'Purchase recorded and stock updated successfully.');
         } catch (\Exception $e) {
             DB::rollBack();
+            \Log::error('Error recording purchase: ' . $e->getMessage(), ['trace' => $e->getTraceAsString()]);
             return back()->with('error', 'Error recording purchase: ' . $e->getMessage())->withInput();
         }
     }
@@ -129,10 +148,22 @@ class PurchaseController extends Controller
 
     public function update(Request $request, Purchase $purchase)
     {
+        $pharmacyId = auth()->user()->pharmacy_id;
+        if (!$pharmacyId && $request->branch_id) {
+            $branch = \App\Models\Branch::find($request->branch_id);
+            if ($branch) $pharmacyId = $branch->pharmacy_id;
+        }
+
         $validated = $request->validate([
             'branch_id' => 'required|exists:branches,id',
             'supplier_id' => 'required|exists:suppliers,id',
-            'invoice_number' => 'required|string|unique:purchases,invoice_number,' . $purchase->id,
+            'invoice_number' => [
+                'required',
+                'string',
+                \Illuminate\Validation\Rule::unique('purchases', 'invoice_number')->ignore($purchase->id)->where(function ($query) use ($pharmacyId) {
+                    return $query->where('pharmacy_id', $pharmacyId);
+                })
+            ],
             'purchase_date' => 'required|date',
             'items' => 'required|array|min:1',
             'items.*.medicine_id' => 'required|exists:medicines,id',
@@ -259,6 +290,7 @@ class PurchaseController extends Controller
 
         } catch (\Exception $e) {
             DB::rollBack();
+            \Log::error('Error updating purchase: ' . $e->getMessage(), ['trace' => $e->getTraceAsString()]);
             return back()->with('error', 'Error updating purchase: ' . $e->getMessage())->withInput();
         }
     }

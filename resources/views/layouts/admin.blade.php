@@ -80,6 +80,23 @@
                     </div>
                 @endisset
 
+                <!-- Flash Messages -->
+                @if(session('success'))
+                    <div class="px-6 pt-6">
+                        <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative" role="alert">
+                            <span class="block sm:inline">{{ session('success') }}</span>
+                        </div>
+                    </div>
+                @endif
+
+                @if(session('error'))
+                    <div class="px-6 pt-6">
+                        <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative" role="alert">
+                            <span class="block sm:inline">{{ session('error') }}</span>
+                        </div>
+                    </div>
+                @endif
+
                 <!-- Main Content Body -->
                 <main class="p-6">
                     {{ $slot }}
