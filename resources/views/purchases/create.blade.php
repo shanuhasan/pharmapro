@@ -73,11 +73,13 @@
                                         <th class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[150px]">Expiry</th>
                                         <th class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[100px]">Strip</th>
                                         <th class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[100px]">Qty</th>
-                                        <th class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[120px]">Strip Price</th>
-                                        <th class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[150px]">Unit Purchase Price</th>
-                                        <th class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[120px]">Strip Sale Price</th>
-                                        <th class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[150px]">Unit Sale Price</th>
-                                        <th class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[80px]">Action</th>
+                                    </tr>
+                                    <tr class="bg-gray-100">
+                                        <th class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Strip Price</th>
+                                        <th class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Unit Purchase Price</th>
+                                        <th class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Strip Sale Price</th>
+                                        <th class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Unit Sale Price</th>
+                                        <th colspan="2" class="px-3 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[80px]">Action</th>
                                     </tr>
                                 </thead>
                                 <tbody class="bg-white divide-y divide-gray-200" id="items_tbody">
@@ -121,18 +123,20 @@
                 let medicineOptions = $('#medicine_template').html();
                 
                 let tr = `
-                <tr id="row_${rowIdx}">
+                <tr id="row_${rowIdx}_1" data-row-idx="${rowIdx}" class="item-row-1 border-t-2 border-gray-300">
                     <td class="px-3 py-2"><select name="items[${rowIdx}][medicine_id]" class="medicine_select block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 sm:text-sm" required>${medicineOptions}</select></td>
-                    <td class="px-3 py-2"><input type="text" name="items[${rowIdx}][hsn_code]" class="hsn_input block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 sm:text-sm"></td>
-                    <td class="px-3 py-2"><input type="text" name="items[${rowIdx}][batch_number]" class="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 sm:text-sm" required></td>
-                    <td class="px-3 py-2"><input type="date" name="items[${rowIdx}][expiry_date]" class="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 sm:text-sm"></td>
-                    <td class="px-3 py-2"><input type="number" name="items[${rowIdx}][strip]" class="strip_input block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 sm:text-sm" min="0" step="any"></td>
-                    <td class="px-3 py-2"><input type="number" name="items[${rowIdx}][quantity]" class="qty_input block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 sm:text-sm" min="1" value="1" required></td>
-                    <td class="px-3 py-2"><input type="number" step="0.01" class="strip_price_input block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 sm:text-sm" min="0" value="0.00"></td>
-                    <td class="px-3 py-2"><input type="number" step="0.01" name="items[${rowIdx}][purchase_price]" class="purchase_price_input block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 sm:text-sm" min="0" value="0.00" required></td>
-                    <td class="px-3 py-2"><input type="number" step="0.01" class="strip_sale_price_input block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 sm:text-sm" min="0" value="0.00"></td>
-                    <td class="px-3 py-2"><input type="number" step="0.01" name="items[${rowIdx}][sale_price]" class="sale_price_input block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 sm:text-sm" min="0" value="0.00" required></td>
-                    <td class="px-3 py-2 text-center"><button type="button" class="remove_row text-red-600 hover:text-red-900"><i class="fas fa-trash"></i></button></td>
+                    <td class="px-3 py-2"><input type="text" name="items[${rowIdx}][hsn_code]" placeholder="HSN Code" class="hsn_input block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 sm:text-sm"></td>
+                    <td class="px-3 py-2"><input type="text" name="items[${rowIdx}][batch_number]" placeholder="Batch No." class="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 sm:text-sm"></td>
+                    <td class="px-3 py-2"><input type="date" name="items[${rowIdx}][expiry_date]" class="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 sm:text-sm" required></td>
+                    <td class="px-3 py-2"><input type="number" name="items[${rowIdx}][strip]" placeholder="Strips" class="strip_input block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 sm:text-sm" min="0" step="any"></td>
+                    <td class="px-3 py-2"><input type="number" name="items[${rowIdx}][quantity]" placeholder="Qty" class="qty_input block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 sm:text-sm" min="1" value="1" required></td>
+                </tr>
+                <tr id="row_${rowIdx}_2" data-row-idx="${rowIdx}" class="item-row-2 bg-gray-50 border-b border-gray-200">
+                    <td class="px-3 py-2"><input type="number" step="0.01" placeholder="Strip Price" class="strip_price_input block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 sm:text-sm" min="0" value="0.00"></td>
+                    <td class="px-3 py-2"><input type="number" step="0.01" name="items[${rowIdx}][purchase_price]" placeholder="Unit Pur. Price" class="purchase_price_input block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 sm:text-sm" min="0" value="0.00" required></td>
+                    <td class="px-3 py-2"><input type="number" step="0.01" placeholder="Strip Sale" class="strip_sale_price_input block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 sm:text-sm" min="0" value="0.00"></td>
+                    <td class="px-3 py-2"><input type="number" step="0.01" name="items[${rowIdx}][sale_price]" placeholder="Unit Sale Price" class="sale_price_input block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 sm:text-sm" min="0" value="0.00" required></td>
+                    <td colspan="2" class="px-3 py-2 text-center"><button type="button" class="remove_row inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded-md text-red-700 bg-red-100 hover:bg-red-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"><i class="fas fa-trash mr-1"></i> Remove</button></td>
                 </tr>`;
                 
                 $('#items_tbody').append(tr);
@@ -149,8 +153,9 @@
 
             // Remove row button
             $(document).on('click', '.remove_row', function() {
-                if ($('#items_tbody tr').length > 1) {
-                    $(this).closest('tr').remove();
+                if ($('#items_tbody tr').length > 2) {
+                    let rowIdx = $(this).closest('tr').data('row-idx');
+                    $(`#row_${rowIdx}_1, #row_${rowIdx}_2`).remove();
                 } else {
                     alert("At least one item is required.");
                 }
@@ -158,113 +163,128 @@
 
             // When medicine is selected, store perStrip data
             $(document).on('change', '.medicine_select', function() {
+                let rowIdx = $(this).closest('tr').data('row-idx');
+                let itemContainer = $(`#row_${rowIdx}_1, #row_${rowIdx}_2`);
+                let tr1 = $(`#row_${rowIdx}_1`);
                 let perStrip = $(this).find('option:selected').data('medicines-per-strip') || 1;
                 let hsnCode = $(this).find('option:selected').data('hsn-code') || '';
-                let tr = $(this).closest('tr');
-                tr.data('medicines-per-strip', perStrip);
+                
+                tr1.data('medicines-per-strip', perStrip);
                 
                 // Set HSN code
-                if (hsnCode && !tr.find('.hsn_input').val()) {
-                    tr.find('.hsn_input').val(hsnCode);
+                if (hsnCode && !itemContainer.find('.hsn_input').val()) {
+                    itemContainer.find('.hsn_input').val(hsnCode);
                 }
                 
                 // Recalculate strip based on current qty
-                let qty = parseFloat(tr.find('.qty_input').val());
+                let qty = parseFloat(itemContainer.find('.qty_input').val());
                 if (!isNaN(qty)) {
                     let strips = qty / perStrip;
-                    tr.find('.strip_input').val(Number.isInteger(strips) ? strips : strips.toFixed(2));
+                    itemContainer.find('.strip_input').val(Number.isInteger(strips) ? strips : strips.toFixed(2));
                 }
 
                 // Recalculate strip price based on current unit price
-                let unitPrice = parseFloat(tr.find('.purchase_price_input').val());
+                let unitPrice = parseFloat(itemContainer.find('.purchase_price_input').val());
                 if (!isNaN(unitPrice) && unitPrice > 0) {
                     let stripPrice = unitPrice * perStrip;
-                    tr.find('.strip_price_input').val(stripPrice.toFixed(2));
+                    itemContainer.find('.strip_price_input').val(stripPrice.toFixed(2));
                 }
 
                 // Recalculate strip sale price based on current unit sale price
-                let unitSalePrice = parseFloat(tr.find('.sale_price_input').val());
+                let unitSalePrice = parseFloat(itemContainer.find('.sale_price_input').val());
                 if (!isNaN(unitSalePrice) && unitSalePrice > 0) {
                     let stripSalePrice = unitSalePrice * perStrip;
-                    tr.find('.strip_sale_price_input').val(stripSalePrice.toFixed(2));
+                    itemContainer.find('.strip_sale_price_input').val(stripSalePrice.toFixed(2));
                 }
             });
 
             // When strip is entered, calculate qty
             $(document).on('input change keyup', '.strip_input', function() {
-                let tr = $(this).closest('tr');
-                let perStrip = tr.data('medicines-per-strip') || tr.find('.medicine_select option:selected').data('medicines-per-strip') || 1;
+                let rowIdx = $(this).closest('tr').data('row-idx');
+                let itemContainer = $(`#row_${rowIdx}_1, #row_${rowIdx}_2`);
+                let tr1 = $(`#row_${rowIdx}_1`);
+                let perStrip = tr1.data('medicines-per-strip') || tr1.find('.medicine_select option:selected').data('medicines-per-strip') || 1;
                 let strips = parseFloat($(this).val());
                 if (!isNaN(strips)) {
                     let qty = Math.round(strips * perStrip);
-                    tr.find('.qty_input').val(qty);
+                    itemContainer.find('.qty_input').val(qty);
                 } else {
-                    tr.find('.qty_input').val('');
+                    itemContainer.find('.qty_input').val('');
                 }
             });
 
             // When qty is entered, calculate strip
             $(document).on('input change keyup', '.qty_input', function() {
-                let tr = $(this).closest('tr');
-                let perStrip = tr.data('medicines-per-strip') || tr.find('.medicine_select option:selected').data('medicines-per-strip') || 1;
+                let rowIdx = $(this).closest('tr').data('row-idx');
+                let itemContainer = $(`#row_${rowIdx}_1, #row_${rowIdx}_2`);
+                let tr1 = $(`#row_${rowIdx}_1`);
+                let perStrip = tr1.data('medicines-per-strip') || tr1.find('.medicine_select option:selected').data('medicines-per-strip') || 1;
                 let qty = parseFloat($(this).val());
                 if (!isNaN(qty)) {
                     let strips = qty / perStrip;
-                    tr.find('.strip_input').val(Number.isInteger(strips) ? strips : strips.toFixed(2));
+                    itemContainer.find('.strip_input').val(Number.isInteger(strips) ? strips : strips.toFixed(2));
                 } else {
-                    tr.find('.strip_input').val('');
+                    itemContainer.find('.strip_input').val('');
                 }
             });
 
             // When strip price is entered, calculate unit purchase price
             $(document).on('input change keyup', '.strip_price_input', function() {
-                let tr = $(this).closest('tr');
-                let perStrip = tr.data('medicines-per-strip') || tr.find('.medicine_select option:selected').data('medicines-per-strip') || 1;
+                let rowIdx = $(this).closest('tr').data('row-idx');
+                let itemContainer = $(`#row_${rowIdx}_1, #row_${rowIdx}_2`);
+                let tr1 = $(`#row_${rowIdx}_1`);
+                let perStrip = tr1.data('medicines-per-strip') || tr1.find('.medicine_select option:selected').data('medicines-per-strip') || 1;
                 let stripPrice = parseFloat($(this).val());
                 if (!isNaN(stripPrice)) {
                     let unitPrice = stripPrice / perStrip;
-                    tr.find('.purchase_price_input').val(unitPrice.toFixed(2));
+                    itemContainer.find('.purchase_price_input').val(unitPrice.toFixed(2));
                 } else {
-                    tr.find('.purchase_price_input').val('');
+                    itemContainer.find('.purchase_price_input').val('');
                 }
             });
 
             // When unit purchase price is entered, calculate strip price
             $(document).on('input change keyup', '.purchase_price_input', function() {
-                let tr = $(this).closest('tr');
-                let perStrip = tr.data('medicines-per-strip') || tr.find('.medicine_select option:selected').data('medicines-per-strip') || 1;
+                let rowIdx = $(this).closest('tr').data('row-idx');
+                let itemContainer = $(`#row_${rowIdx}_1, #row_${rowIdx}_2`);
+                let tr1 = $(`#row_${rowIdx}_1`);
+                let perStrip = tr1.data('medicines-per-strip') || tr1.find('.medicine_select option:selected').data('medicines-per-strip') || 1;
                 let unitPrice = parseFloat($(this).val());
                 if (!isNaN(unitPrice)) {
                     let stripPrice = unitPrice * perStrip;
-                    tr.find('.strip_price_input').val(stripPrice.toFixed(2));
+                    itemContainer.find('.strip_price_input').val(stripPrice.toFixed(2));
                 } else {
-                    tr.find('.strip_price_input').val('');
+                    itemContainer.find('.strip_price_input').val('');
                 }
             });
 
             // When strip sale price is entered, calculate unit sale price
             $(document).on('input change keyup', '.strip_sale_price_input', function() {
-                let tr = $(this).closest('tr');
-                let perStrip = tr.data('medicines-per-strip') || tr.find('.medicine_select option:selected').data('medicines-per-strip') || 1;
+                let rowIdx = $(this).closest('tr').data('row-idx');
+                let itemContainer = $(`#row_${rowIdx}_1, #row_${rowIdx}_2`);
+                let tr1 = $(`#row_${rowIdx}_1`);
+                let perStrip = tr1.data('medicines-per-strip') || tr1.find('.medicine_select option:selected').data('medicines-per-strip') || 1;
                 let stripSalePrice = parseFloat($(this).val());
                 if (!isNaN(stripSalePrice)) {
                     let unitSalePrice = stripSalePrice / perStrip;
-                    tr.find('.sale_price_input').val(unitSalePrice.toFixed(2));
+                    itemContainer.find('.sale_price_input').val(unitSalePrice.toFixed(2));
                 } else {
-                    tr.find('.sale_price_input').val('');
+                    itemContainer.find('.sale_price_input').val('');
                 }
             });
 
             // When unit sale price is entered, calculate strip sale price
             $(document).on('input change keyup', '.sale_price_input', function() {
-                let tr = $(this).closest('tr');
-                let perStrip = tr.data('medicines-per-strip') || tr.find('.medicine_select option:selected').data('medicines-per-strip') || 1;
+                let rowIdx = $(this).closest('tr').data('row-idx');
+                let itemContainer = $(`#row_${rowIdx}_1, #row_${rowIdx}_2`);
+                let tr1 = $(`#row_${rowIdx}_1`);
+                let perStrip = tr1.data('medicines-per-strip') || tr1.find('.medicine_select option:selected').data('medicines-per-strip') || 1;
                 let unitSalePrice = parseFloat($(this).val());
                 if (!isNaN(unitSalePrice)) {
                     let stripSalePrice = unitSalePrice * perStrip;
-                    tr.find('.strip_sale_price_input').val(stripSalePrice.toFixed(2));
+                    itemContainer.find('.strip_sale_price_input').val(stripSalePrice.toFixed(2));
                 } else {
-                    tr.find('.strip_sale_price_input').val('');
+                    itemContainer.find('.strip_sale_price_input').val('');
                 }
             });
         });
