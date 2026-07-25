@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class Expense extends Model
 {
-    use HasFactory;
+    use HasFactory, \App\Traits\HasPharmacy;
 
     protected $guarded = [];
 
@@ -21,3 +21,4 @@ class Expense extends Model
         return $this->belongsTo(User::class, 'created_by');
     }
 }
+

@@ -11,7 +11,7 @@ use Illuminate\Database\Eloquent\Builder;
 
 class Branch extends Model
 {
-    use HasFactory, SoftDeletes;
+    use HasFactory, SoftDeletes, \App\Traits\HasPharmacy;
 
     protected $guarded = [];
 
@@ -45,3 +45,4 @@ class Branch extends Model
         return $this->hasMany(Purchase::class);
     }
 }
+
