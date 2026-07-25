@@ -5,11 +5,47 @@ namespace App\Http\Controllers;
 use App\Models\Medicine;
 use App\Models\MedicineCategory;
 use App\Models\Unit;
+use App\Imports\MedicinesImport;
 use Illuminate\Http\Request;
+use Maatwebsite\Excel\Facades\Excel;
 use Yajra\DataTables\Facades\DataTables;
 
 class MedicineController extends Controller
 {
+    public function import(Request $request)
+    {
+        $request->validate([
+            'import_file' => 'required|file'
+        ]);
+
+        try {
+            Excel::import(new MedicinesImport, $request->file('import_file'));
+            return redirect()->route('medicines.index')->with('success', 'Medicines imported successfully!');
+        } catch (\Exception $e) {
+            return redirect()->route('medicines.index')->with('error', 'Error importing file: ' . $e->getMessage());
+        }
+    }
+
+    public function downloadTemplate()
+    {
+        $headers = [
+            'Content-Type' => 'text/csv',
+        ];
+        
+        $callback = function() {
+            $file = fopen('php://output', 'w');
+            fputcsv($file, [
+                'Name', 'Generic Name', 'HSN Code', 'Category', 'Unit', 
+                'Manufacturer', 'Description', 'Strips Per Box', 
+                'Medicines Per Strip', 'Requires Prescription', 'Is Active'
+            ]);
+            fclose($file);
+        };
+
+        return response()->stream($callback, 200, array_merge($headers, [
+            'Content-Disposition' => 'attachment; filename="medicines_import_template.csv"',
+        ]));
+    }
     public function index(Request $request)
     {
         if ($request->ajax()) {

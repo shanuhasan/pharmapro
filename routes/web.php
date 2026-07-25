@@ -20,6 +20,8 @@ Route::middleware('auth')->group(function () {
     Route::resource('branches', \App\Http\Controllers\BranchController::class)->middleware('role:admin');
     
     // Medicines Management
+    Route::post('medicines/import', [\App\Http\Controllers\MedicineController::class, 'import'])->name('medicines.import');
+    Route::get('medicines/download-template', [\App\Http\Controllers\MedicineController::class, 'downloadTemplate'])->name('medicines.download_template');
     Route::resource('medicine-categories', \App\Http\Controllers\MedicineCategoryController::class);
     Route::resource('units', \App\Http\Controllers\UnitController::class);
     Route::resource('medicines', \App\Http\Controllers\MedicineController::class);
