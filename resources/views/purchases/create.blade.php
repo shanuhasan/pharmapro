@@ -88,10 +88,18 @@
                             </table>
                         </div>
 
-                        <div class="mt-4">
+                        <div class="mt-4 flex flex-wrap gap-4 items-center">
                             <button type="button" id="add_row" class="bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-2 px-4 rounded inline-flex items-center">
                                 <i class="fas fa-plus mr-2"></i> Add Item
                             </button>
+                            
+                            <div class="flex items-center space-x-2 border-l border-gray-300 pl-4">
+                                <input type="file" id="import_file" accept=".csv, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/vnd.ms-excel" class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100">
+                                <button type="button" id="import_btn" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded inline-flex items-center whitespace-nowrap">
+                                    <i class="fas fa-file-import mr-2"></i> Import Excel/CSV
+                                </button>
+                                <span id="import_loading" class="hidden text-sm text-gray-500"><i class="fas fa-spinner fa-spin mr-1"></i> Importing...</span>
+                            </div>
                         </div>
 
                         <div class="mt-6 flex justify-end border-t pt-4">
@@ -295,6 +303,115 @@
                 } else {
                     itemContainer.find('.strip_sale_price_input').val('');
                 }
+            });
+
+            // Import Excel/CSV functionality
+            $('#import_btn').click(function() {
+                let fileInput = $('#import_file')[0];
+                if (fileInput.files.length === 0) {
+                    alert('Please select a file to import.');
+                    return;
+                }
+
+                let formData = new FormData();
+                formData.append('file', fileInput.files[0]);
+                formData.append('_token', '{{ csrf_token() }}');
+
+                $('#import_btn').prop('disabled', true);
+                $('#import_loading').removeClass('hidden');
+
+                $.ajax({
+                    url: '{{ route("purchases.import_file") }}',
+                    type: 'POST',
+                    data: formData,
+                    processData: false,
+                    contentType: false,
+                    success: function(response) {
+                        $('#import_btn').prop('disabled', false);
+                        $('#import_loading').addClass('hidden');
+
+                        if (response.success) {
+                            // Populate invoice details
+                            if (response.supplier_id) {
+                                $('#supplier_id').val(response.supplier_id).trigger('change');
+                            } else if (response.supplier_name) {
+                                alert("Supplier '" + response.supplier_name + "' not found in database. Please select manually.");
+                            }
+
+                            if (response.invoice_number) {
+                                $('#invoice_number').val(response.invoice_number);
+                            }
+
+                            if (response.purchase_date) {
+                                $('#purchase_date').val(response.purchase_date);
+                            }
+
+                            // Clear existing empty rows if any
+                            let firstRowMedicine = $(`#row_0_1 .medicine_select`).val();
+                            if ($('#items_tbody tr').length <= 2 && !firstRowMedicine) {
+                                $('#items_tbody').empty();
+                                rowIdx = 0;
+                            }
+
+                            // Add imported items
+                            let missingMedicines = [];
+                            response.items.forEach(function(item) {
+                                addRow();
+                                let currentRowIdx = rowIdx - 1;
+                                let tr1 = $(`#row_${currentRowIdx}_1`);
+                                let tr2 = $(`#row_${currentRowIdx}_2`);
+
+                                if (item.medicine_id) {
+                                    let selectEl = tr1.find('.medicine_select');
+                                    if (selectEl.find("option[value='" + item.medicine_id + "']").length === 0) {
+                                        let newOption = new Option(item.medicine_name, item.medicine_id, false, false);
+                                        $(newOption).attr('data-medicines-per-strip', item.medicines_per_strip);
+                                        $(newOption).attr('data-hsn-code', item.hsn_code);
+                                        selectEl.append(newOption);
+                                        $('#medicine_template').append($(newOption).clone());
+                                    }
+                                    selectEl.val(item.medicine_id).trigger('change');
+                                } else {
+                                    missingMedicines.push(item.medicine_name);
+                                }
+
+                                tr1.find('.hsn_input').val(item.hsn_code);
+                                tr1.find('input[name="items[' + currentRowIdx + '][batch_number]"]').val(item.batch_number);
+                                if (item.expiry_date) {
+                                    tr1.find('input[name="items[' + currentRowIdx + '][expiry_date]"]').val(item.expiry_date);
+                                }
+                                
+                                // Set Strips and let the inputs trigger changes for qty
+                                let stripInput = tr1.find('.strip_input');
+                                stripInput.val(item.quantity).trigger('input');
+
+                                // Set Prices (Excel provides Strip Rate and Strip MRP)
+                                let stripPriceInput = tr2.find('.strip_price_input');
+                                stripPriceInput.val(item.purchase_price.toFixed(2)).trigger('input');
+
+                                let stripSalePriceInput = tr2.find('.strip_sale_price_input');
+                                stripSalePriceInput.val(item.sale_price.toFixed(2)).trigger('input');
+                            });
+
+                            if (missingMedicines.length > 0) {
+                                alert("Some medicines were not found in the database and need to be selected manually:\\n" + missingMedicines.join(", "));
+                            }
+                            
+                            // Reset file input
+                            $('#import_file').val('');
+                            alert("Import successful! Please review the items.");
+                        }
+                    },
+                    error: function(xhr) {
+                        $('#import_btn').prop('disabled', false);
+                        $('#import_loading').addClass('hidden');
+                        let errorMessage = 'An error occurred during import.';
+                        if (xhr.responseJSON && xhr.responseJSON.error) {
+                            errorMessage = xhr.responseJSON.error;
+                        }
+                        alert(errorMessage);
+                    }
+                });
             });
         });
     </script>

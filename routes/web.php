@@ -40,6 +40,7 @@ Route::middleware('auth')->group(function () {
     Route::resource('customers', \App\Http\Controllers\CustomerController::class);
     
     // Purchases
+    Route::post('purchases/import-file', [\App\Http\Controllers\PurchaseController::class, 'importFile'])->name('purchases.import_file');
     Route::resource('purchases', \App\Http\Controllers\PurchaseController::class);
     
     // Stock

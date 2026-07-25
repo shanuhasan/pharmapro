@@ -294,4 +294,134 @@ class PurchaseController extends Controller
             return back()->with('error', 'Error updating purchase: ' . $e->getMessage())->withInput();
         }
     }
+
+    public function importFile(Request $request)
+    {
+        $request->validate([
+            'file' => 'required|mimes:xls,xlsx,csv'
+        ]);
+
+        try {
+            $file = $request->file('file');
+            $spreadsheet = \PhpOffice\PhpSpreadsheet\IOFactory::load($file->getPathname());
+            $worksheet = $spreadsheet->getActiveSheet();
+            $rows = $worksheet->toArray();
+            
+            if (count($rows) === 0) {
+                return response()->json(['error' => 'File is empty'], 400);
+            }
+
+            $items = [];
+            $supplierName = null;
+            $invoiceNumber = null;
+            $purchaseDate = null;
+            
+            foreach ($rows as $index => $row) {
+                if ($index === 0) continue; // Skip header row
+                
+                if (!empty($row[6]) && !empty($row[1])) {
+                    if (!$invoiceNumber) {
+                        $supplierName = $row[0] ?? null;
+                        $invoiceNumber = $row[1] ?? null;
+                        
+                        $rawDate = $row[2] ?? null;
+                        if ($rawDate) {
+                            try {
+                                $purchaseDate = \Carbon\Carbon::createFromFormat('d/m/Y', $rawDate)->format('Y-m-d');
+                            } catch (\Exception $e) {
+                                try {
+                                    $purchaseDate = \Carbon\Carbon::parse(str_replace('/', '-', $rawDate))->format('Y-m-d');
+                                } catch (\Exception $e) {
+                                    $purchaseDate = null;
+                                }
+                            }
+                        }
+                    }
+
+                    $medicineName = $row[6];
+                    $cleanName = preg_replace('/[*#]$/', '', trim($medicineName));
+                    
+                    $medicine = Medicine::where('name', 'LIKE', '%' . $cleanName . '%')->first();
+                    
+                    $packStr = $row[7] ?? ''; // e.g., "15`S", "100ML", "5GM"
+                    $medicinesPerStrip = 1;
+                    // Only extract if it ends with 'S, `S, or S
+                    if (preg_match('/^(\d+)\s*[`\'’]?\s*S$/i', trim($packStr), $matches)) {
+                        $medicinesPerStrip = (int)$matches[1];
+                        if ($medicinesPerStrip <= 0) $medicinesPerStrip = 1;
+                    }
+
+                    if (!$medicine) {
+                        $defaultCategory = \App\Models\MedicineCategory::firstOrCreate(['name' => 'General']);
+                        $defaultUnit = \App\Models\Unit::firstOrCreate(['name' => 'Strip', 'abbreviation' => 'Str']);
+                        
+                        $pharmacyId = auth()->user()->pharmacy_id;
+                        if (!$pharmacyId) {
+                            $branch = \App\Models\Branch::first();
+                            if ($branch) $pharmacyId = $branch->pharmacy_id;
+                        }
+
+                        $medicine = Medicine::create([
+                            'name' => $cleanName,
+                            'medicines_per_strip' => $medicinesPerStrip,
+                            'hsn_code' => $row[25] ?? null,
+                            'category_id' => $defaultCategory->id,
+                            'unit_id' => $defaultUnit->id,
+                            'manufacturer' => $supplierName ?? null,
+                            'is_active' => true,
+                            'pharmacy_id' => $pharmacyId
+                        ]);
+                    } else {
+                        // Update existing medicine pack size if it was not set or changed
+                        if ($medicinesPerStrip > 1 && $medicine->medicines_per_strip != $medicinesPerStrip) {
+                            $medicine->update(['medicines_per_strip' => $medicinesPerStrip]);
+                        }
+                    }
+                    
+                    $expiry = $row[9] ?? null;
+                    $formattedExpiry = null;
+                    if ($expiry) {
+                        try {
+                            $formattedExpiry = \Carbon\Carbon::createFromFormat('m/y', $expiry)->endOfMonth()->format('Y-m-d');
+                        } catch (\Exception $e) {
+                            $formattedExpiry = null;
+                        }
+                    }
+
+                    $items[] = [
+                        'medicine_name' => $medicineName,
+                        'medicine_id' => $medicine ? $medicine->id : null,
+                        'medicines_per_strip' => $medicinesPerStrip,
+                        'hsn_code' => $row[25] ?? ($medicine ? $medicine->hsn_code : ''),
+                        'batch_number' => $row[8] ?? null,
+                        'expiry_date' => $formattedExpiry,
+                        'quantity' => (int)($row[10] ?? 0) + (int)($row[11] ?? 0),
+                        'purchase_price' => (float)($row[13] ?? 0),
+                        'sale_price' => (float)($row[15] ?? 0),
+                    ];
+                }
+            }
+
+            $supplierId = null;
+            if ($supplierName) {
+                $supplier = Supplier::where('name', 'LIKE', '%' . trim($supplierName) . '%')->first();
+                if ($supplier) {
+                    $supplierId = $supplier->id;
+                }
+            }
+
+            return response()->json([
+                'success' => true,
+                'supplier_id' => $supplierId,
+                'supplier_name' => $supplierName,
+                'invoice_number' => $invoiceNumber,
+                'purchase_date' => $purchaseDate,
+                'items' => $items
+            ]);
+
+        } catch (\Exception $e) {
+            \Log::error('Excel import failed: ' . $e->getMessage(), ['trace' => $e->getTraceAsString()]);
+            return response()->json(['error' => 'Failed to parse file: ' . $e->getMessage()], 500);
+        }
+    }
 }
