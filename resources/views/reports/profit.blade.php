@@ -78,9 +78,9 @@
                     {data: 'sale.invoice_number', name: 'sale.invoice_number'},
                     {data: 'medicine.name', name: 'medicine.name'},
                     {data: 'quantity', name: 'quantity'},
-                    {data: 'purchase_cost', name: 'purchase_cost', render: $.fn.dataTable.render.number(',', '.', 2, '$')},
-                    {data: 'sale_revenue', name: 'sale_revenue', render: $.fn.dataTable.render.number(',', '.', 2, '$')},
-                    {data: 'profit', name: 'profit'},
+                    {data: 'purchase_cost', name: 'purchase_cost', render: $.fn.dataTable.render.number(',', '.', 2, '{{ setting('currency_symbol', '₹') }}')},
+                    {data: 'sale_revenue', name: 'sale_revenue', render: $.fn.dataTable.render.number(',', '.', 2, '{{ setting('currency_symbol', '₹') }}')},
+                    {data: 'profit', name: 'profit', render: $.fn.dataTable.render.number(',', '.', 2, '{{ setting('currency_symbol', '₹') }}')},
                 ]
             });
 
