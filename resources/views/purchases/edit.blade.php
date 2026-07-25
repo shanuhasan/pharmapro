@@ -121,6 +121,15 @@
 
             function addRow(item = null) {
                 let medicineOptions = '';
+                let perStrip = 1;
+                
+                if (item) {
+                    let optionElem = $('#medicine_template option[value="' + item.medicine_id + '"]');
+                    if (optionElem.length) {
+                        perStrip = optionElem.data('medicines-per-strip') || 1;
+                    }
+                }
+
                 $('#medicine_template option').each(function() {
                     let selected = (item && item.medicine_id == $(this).val()) ? 'selected' : '';
                     medicineOptions += `<option value="${$(this).val()}" data-medicines-per-strip="${$(this).data('medicines-per-strip')}" data-hsn-code="${$(this).data('hsn-code')}" ${selected}>${$(this).text()}</option>`;
@@ -132,6 +141,22 @@
                 let qty = item ? item.quantity : 1;
                 let pPrice = item ? parseFloat(item.purchase_price).toFixed(2) : '0.00';
                 let sPrice = item ? parseFloat(item.sale_price).toFixed(2) : '0.00';
+                
+                let strips = '';
+                let stripPrice = '0.00';
+                let stripSalePrice = '0.00';
+                
+                if (item) {
+                    let s = qty / perStrip;
+                    strips = Number.isInteger(s) ? s : s.toFixed(2);
+                    
+                    if (pPrice > 0) {
+                        stripPrice = (parseFloat(pPrice) * perStrip).toFixed(2);
+                    }
+                    if (sPrice > 0) {
+                        stripSalePrice = (parseFloat(sPrice) * perStrip).toFixed(2);
+                    }
+                }
 
                 let tr = `
                 <tr id="row_${rowIdx}_1" data-row-idx="${rowIdx}" class="item-row-1 border-t-2 border-gray-300">
@@ -139,23 +164,22 @@
                     <td class="px-3 py-2"><input type="text" name="items[${rowIdx}][hsn_code]" value="${hsn}" placeholder="HSN Code" class="hsn_input block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 sm:text-sm"></td>
                     <td class="px-3 py-2"><input type="text" name="items[${rowIdx}][batch_number]" value="${batch}" placeholder="Batch No." class="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 sm:text-sm" required></td>
                     <td class="px-3 py-2"><input type="date" name="items[${rowIdx}][expiry_date]" value="${expiry}" class="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 sm:text-sm" required></td>
-                    <td class="px-3 py-2"><input type="number" name="items[${rowIdx}][strip]" placeholder="Strips" class="strip_input block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 sm:text-sm" min="0" step="any"></td>
-                    <td class="px-3 py-2"><input type="number" name="items[${rowIdx}][quantity]" placeholder="Qty" class="qty_input block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 sm:text-sm" min="1" value="${qty}" required></td>
+                    <td class="px-3 py-2"><input type="number" name="items[${rowIdx}][strip]" value="${strips}" placeholder="Strips" class="strip_input block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 sm:text-sm" min="0" step="any"></td>
+                    <td class="px-3 py-2"><input type="number" name="items[${rowIdx}][quantity]" value="${qty}" placeholder="Qty" class="qty_input block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 sm:text-sm" min="1" required></td>
                 </tr>
                 <tr id="row_${rowIdx}_2" data-row-idx="${rowIdx}" class="item-row-2 bg-gray-50 border-b border-gray-200">
-                    <td class="px-3 py-2"><input type="number" step="0.01" placeholder="Strip Price" class="strip_price_input block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 sm:text-sm" min="0" value="0.00"></td>
-                    <td class="px-3 py-2"><input type="number" step="0.01" name="items[${rowIdx}][purchase_price]" placeholder="Unit Pur. Price" class="purchase_price_input block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 sm:text-sm" min="0" value="${pPrice}" required></td>
-                    <td class="px-3 py-2"><input type="number" step="0.01" placeholder="Strip Sale" class="strip_sale_price_input block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 sm:text-sm" min="0" value="0.00"></td>
-                    <td class="px-3 py-2"><input type="number" step="0.01" name="items[${rowIdx}][sale_price]" placeholder="Unit Sale Price" class="sale_price_input block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 sm:text-sm" min="0" value="${sPrice}" required></td>
+                    <td class="px-3 py-2"><input type="number" step="0.01" value="${stripPrice}" placeholder="Strip Price" class="strip_price_input block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 sm:text-sm" min="0"></td>
+                    <td class="px-3 py-2"><input type="number" step="0.01" name="items[${rowIdx}][purchase_price]" value="${pPrice}" placeholder="Unit Pur. Price" class="purchase_price_input block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 sm:text-sm" min="0" required></td>
+                    <td class="px-3 py-2"><input type="number" step="0.01" value="${stripSalePrice}" placeholder="Strip Sale" class="strip_sale_price_input block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 sm:text-sm" min="0"></td>
+                    <td class="px-3 py-2"><input type="number" step="0.01" name="items[${rowIdx}][sale_price]" value="${sPrice}" placeholder="Unit Sale Price" class="sale_price_input block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 sm:text-sm" min="0" required></td>
                     <td colspan="2" class="px-3 py-2 text-center"><button type="button" class="remove_row inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded-md text-red-700 bg-red-100 hover:bg-red-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"><i class="fas fa-trash mr-1"></i> Remove</button></td>
                 </tr>`;
                 
                 $('#items_tbody').append(tr);
                 
-                // Trigger change to calculate strips initially
                 if (item) {
-                    let newTr1 = $(`#row_${rowIdx}_1`);
-                    newTr1.find('.medicine_select').trigger('change');
+                    // Set data attribute for medicines-per-strip so subsequent triggers work correctly
+                    $(`#row_${rowIdx}_1`).data('medicines-per-strip', perStrip);
                 }
                 
                 rowIdx++;
