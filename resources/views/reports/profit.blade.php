@@ -80,7 +80,7 @@
                     {data: 'quantity', name: 'quantity'},
                     {data: 'purchase_cost', name: 'purchase_cost', render: $.fn.dataTable.render.number(',', '.', 2, '{{ setting('currency_symbol', '₹') }}')},
                     {data: 'sale_revenue', name: 'sale_revenue', render: $.fn.dataTable.render.number(',', '.', 2, '{{ setting('currency_symbol', '₹') }}')},
-                    {data: 'profit', name: 'profit', render: $.fn.dataTable.render.number(',', '.', 2, '{{ setting('currency_symbol', '₹') }}')},
+                    {data: 'profit', name: 'profit'},
                 ]
             });
 
