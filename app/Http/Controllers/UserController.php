@@ -24,7 +24,7 @@ class UserController extends Controller
                 })
                 ->addColumn('action', function($row){
                     $btn = '<a href="'.route('users.edit', $row->id).'" class="text-blue-600 hover:text-blue-900 mr-3"><i class="fas fa-edit"></i> Edit</a>';
-                    if ($row->id !== auth()->id()) {
+                    if ($row->id !== auth()->id() && $row->role !== 'super_admin') {
                         $btn .= '<form action="'.route('users.destroy', $row->id).'" method="POST" class="inline-block" onsubmit="return confirm(\'Are you sure you want to delete this user?\');">
                                     '.csrf_field().'
                                     '.method_field('DELETE').'
@@ -103,6 +103,10 @@ class UserController extends Controller
     {
         if ($user->id === auth()->id()) {
             return redirect()->route('users.index')->with('error', 'You cannot delete yourself.');
+        }
+
+        if ($user->role === 'super_admin') {
+            return redirect()->route('users.index')->with('error', 'Super Admin cannot be deleted.');
         }
 
         $user->delete();
