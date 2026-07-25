@@ -10,9 +10,9 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 trait HasPharmacy
 {
     /**
-     * The "booted" method of the trait.
+     * The "boot" method of the trait.
      */
-    protected static function bootedHasPharmacy(): void
+    protected static function bootHasPharmacy(): void
     {
         static::addGlobalScope(new PharmacyScope);
 
