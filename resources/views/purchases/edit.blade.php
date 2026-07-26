@@ -87,10 +87,19 @@
                             </table>
                         </div>
 
-                        <div class="mt-4">
+                        <div class="mt-4 flex justify-between items-center">
                             <button type="button" id="add_row" class="bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-2 px-4 rounded inline-flex items-center">
                                 <i class="fas fa-plus mr-2"></i> Add Item
                             </button>
+                            <div class="w-64">
+                                <label for="extra_charges" class="block text-sm font-medium text-gray-700 text-right">Extra Charges (Fees + GST)</label>
+                                <div class="mt-1 relative rounded-md shadow-sm">
+                                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                        <span class="text-gray-500 sm:text-sm">₹</span>
+                                    </div>
+                                    <input type="number" step="0.01" name="extra_charges" id="extra_charges" class="focus:ring-indigo-500 focus:border-indigo-500 block w-full pl-7 pr-4 sm:text-sm border-gray-300 rounded-md text-right" value="{{ old('extra_charges', $purchase->extra_charges ?? 0) }}" readonly>
+                                </div>
+                            </div>
                         </div>
 
                         <div class="mt-6 flex justify-end border-t pt-4">

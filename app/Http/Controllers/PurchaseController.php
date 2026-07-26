@@ -100,7 +100,8 @@ class PurchaseController extends Controller
                 'supplier_id' => $request->supplier_id,
                 'invoice_number' => $request->invoice_number,
                 'purchase_date' => $request->purchase_date,
-                'total_amount' => $totalAmount,
+                'extra_charges' => $request->extra_charges ?? 0,
+                'total_amount' => $totalAmount + ($request->extra_charges ?? 0),
                 'created_by' => auth()->id(),
             ]);
 
@@ -272,7 +273,8 @@ class PurchaseController extends Controller
                 'supplier_id' => $request->supplier_id,
                 'invoice_number' => $request->invoice_number,
                 'purchase_date' => $request->purchase_date,
-                'total_amount' => $totalAmount,
+                'extra_charges' => $request->extra_charges ?? 0,
+                'total_amount' => $totalAmount + ($request->extra_charges ?? 0),
             ]);
 
             // Replace items
@@ -329,6 +331,8 @@ class PurchaseController extends Controller
                 $isAwacsFormat = true;
             }
 
+            $extraCharges = 0;
+
             foreach ($rows as $index => $row) {
                 if ($index === 0) continue; // Skip header row
                 
@@ -340,6 +344,20 @@ class PurchaseController extends Controller
                 }
 
                 if (!$parsedData) continue;
+                
+                if (!empty($parsedData['isExtraCharge'])) {
+                    $amount = (float)($parsedData['taxableAmtStr'] ?? 0);
+                    if ($amount == 0) {
+                        $qty = (float)$parsedData['qtyStr'];
+                        $srate = (float)$parsedData['srateStr'];
+                        $amount = ($qty * $srate);
+                        if ($amount == 0 && (float)$parsedData['mrpStr'] > 0) {
+                            $amount = (float)$parsedData['mrpStr'];
+                        }
+                    }
+                    $extraCharges += $amount + ($amount * 0.18);
+                    continue;
+                }
 
                 $items[] = $this->processParsedRow($parsedData, $supplierName);
             }
@@ -358,6 +376,7 @@ class PurchaseController extends Controller
                 'supplier_name' => $supplierName,
                 'invoice_number' => $invoiceNumber,
                 'purchase_date' => $purchaseDate,
+                'extra_charges' => $extraCharges,
                 'items' => $items
             ]);
 
@@ -378,8 +397,9 @@ class PurchaseController extends Controller
         }
         
         $medicineName = $row[5];
+        $isExtraCharge = false;
         if (preg_match('/(Platform Fees|COD Charges)/i', $medicineName)) {
-            return null;
+            $isExtraCharge = true;
         }
         $packStr = $row[6] ?? '';
         $batchStr = $row[8] ?? null;
@@ -389,8 +409,10 @@ class PurchaseController extends Controller
         $srateStr = $row[11] ?? 0;
         $mrpStr = $row[12] ?? 0;
         $disStr = $row[17] ?? 0;
+        $taxableAmtStr = $row[21] ?? 0;
         $halfpStr = 0;
         $cgstStr = $row[22] ?? 0;
+        $igstStr = $row[24] ?? 0;
         $sgstStr = $row[26] ?? 0;
         $hsnStr = $row[30] ?? null;
         
@@ -411,7 +433,7 @@ class PurchaseController extends Controller
 
         return compact(
             'medicineName', 'packStr', 'batchStr', 'formattedExpiry', 'qtyStr', 'fqtyStr', 
-            'srateStr', 'mrpStr', 'disStr', 'halfpStr', 'cgstStr', 'sgstStr', 'hsnStr', 'medicinesPerStrip'
+            'srateStr', 'mrpStr', 'disStr', 'halfpStr', 'cgstStr', 'sgstStr', 'igstStr', 'hsnStr', 'medicinesPerStrip', 'isExtraCharge', 'taxableAmtStr'
         );
     }
 
@@ -438,8 +460,9 @@ class PurchaseController extends Controller
         }
 
         $medicineName = $row[6];
+        $isExtraCharge = false;
         if (preg_match('/(Platform Fees|COD Charges)/i', $medicineName)) {
-            return null;
+            $isExtraCharge = true;
         }
         $packStr = $row[7] ?? '';
         $batchStr = $row[8] ?? null;
@@ -449,9 +472,11 @@ class PurchaseController extends Controller
         $srateStr = $row[14] ?? 0;
         $mrpStr = $row[15] ?? 0;
         $disStr = $row[16] ?? 0;
+        $taxableAmtStr = 0;
         $halfpStr = $row[12] ?? 0;
         $cgstStr = $row[26] ?? 0;
         $sgstStr = $row[27] ?? 0;
+        $igstStr = 0;
         $hsnStr = $row[25] ?? null;
 
         $medicinesPerStrip = 1;
@@ -471,7 +496,7 @@ class PurchaseController extends Controller
 
         return compact(
             'medicineName', 'packStr', 'batchStr', 'formattedExpiry', 'qtyStr', 'fqtyStr', 
-            'srateStr', 'mrpStr', 'disStr', 'halfpStr', 'cgstStr', 'sgstStr', 'hsnStr', 'medicinesPerStrip'
+            'srateStr', 'mrpStr', 'disStr', 'halfpStr', 'cgstStr', 'sgstStr', 'igstStr', 'hsnStr', 'medicinesPerStrip', 'isExtraCharge', 'taxableAmtStr'
         );
     }
 
@@ -520,14 +545,31 @@ class PurchaseController extends Controller
         $discountAmount = $grossTotal * ($dis / 100);
         $halfpAmount = $grossTotal * ($halfp / 100);
         $rowTotal = $grossTotal - $discountAmount - $halfpAmount;
+
+        // echo "<pre>rowTotal - ";print_r($rowTotal);
         
         $cgstPercent = (float)$cgstStr;
         $sgstPercent = (float)$sgstStr;
-        $taxPercent = $cgstPercent + $sgstPercent;
+        $igstPercent = (float)$igstStr;
+        
+        if ($cgstPercent == 0 && $sgstPercent == 0) {
+            $taxPercent = $igstPercent;
+        } else {
+            $taxPercent = $cgstPercent + $sgstPercent;
+        }
         
         $taxAmount = $rowTotal * ($taxPercent / 100);
         $rowTotal += $taxAmount;
         $purchasePrice = $srate;
+
+
+        // echo "<pre>totalQty - ";print_r($totalQty);
+        // echo "<pre>grossTotal - ";print_r($grossTotal);
+        // echo "<pre>discountAmount - ";print_r($discountAmount);
+        // echo "<pre>halfpAmount - ";print_r($halfpAmount);
+        // echo "<pre>rowTotal - ";print_r($rowTotal);
+        // echo "<pre>taxAmount - ";print_r($taxAmount);
+        // echo "<pre>purchasePrice - ";print_r($purchasePrice);die;
 
         return [
             'medicine_name' => $medicineName,

@@ -102,6 +102,18 @@
                             </div>
                         </div>
 
+                        <div class="mt-4 flex justify-end">
+                            <div class="w-64">
+                                <label for="extra_charges" class="block text-sm font-medium text-gray-700 text-right">Extra Charges (Fees + GST)</label>
+                                <div class="mt-1 relative rounded-md shadow-sm">
+                                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                        <span class="text-gray-500 sm:text-sm">₹</span>
+                                    </div>
+                                    <input type="number" step="0.01" name="extra_charges" id="extra_charges" class="focus:ring-indigo-500 focus:border-indigo-500 block w-full pl-7 pr-4 sm:text-sm border-gray-300 rounded-md text-right" value="0.00" readonly>
+                                </div>
+                            </div>
+                        </div>
+
                         <div class="mt-6 flex justify-end border-t pt-4">
                             <a href="{{ route('purchases.index') }}" class="bg-white py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 hover:bg-gray-50 mr-3">Cancel</a>
                             <button type="submit" class="bg-medical-primary border border-transparent rounded-md shadow-sm py-2 px-4 inline-flex justify-center text-sm font-medium text-white hover:bg-blue-700">
@@ -403,6 +415,10 @@
                                 alert("Some medicines were not found in the database and need to be selected manually:\\n" + missingMedicines.join(", "));
                             }
                             
+                            if (response.extra_charges !== undefined) {
+                                $('#extra_charges').val(parseFloat(response.extra_charges).toFixed(2));
+                            }
+
                             // Reset file input
                             $('#import_file').val('');
                             alert("Import successful! Please review the items.");
