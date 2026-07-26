@@ -142,6 +142,7 @@
                     <td class="px-3 py-2"><input type="number" name="items[${rowIdx}][quantity]" placeholder="Qty" class="qty_input block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 sm:text-sm" min="1" value="1" required></td>
                 </tr>
                 <tr id="row_${rowIdx}_2" data-row-idx="${rowIdx}" class="item-row-2 bg-gray-50 border-b border-gray-200">
+                    <td class="hidden"><input type="hidden" name="items[${rowIdx}][item_total]" class="item_total_input" value=""></td>
                     <td class="px-3 py-2"><input type="number" step="0.01" placeholder="Strip Price" class="strip_price_input block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 sm:text-sm" min="0" value="0.00"></td>
                     <td class="px-3 py-2"><input type="number" step="0.01" name="items[${rowIdx}][purchase_price]" placeholder="Unit Pur. Price" class="purchase_price_input block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 sm:text-sm" min="0" value="0.00" required></td>
                     <td class="px-3 py-2"><input type="number" step="0.01" placeholder="Strip Sale" class="strip_sale_price_input block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 sm:text-sm" min="0" value="0.00"></td>
@@ -391,6 +392,11 @@
 
                                 let stripSalePriceInput = tr2.find('.strip_sale_price_input');
                                 stripSalePriceInput.val(item.sale_price.toFixed(2)).trigger('input');
+                                
+                                // Set item total (Discounted total)
+                                if (item.item_total !== undefined) {
+                                    tr2.find('.item_total_input').val(item.item_total);
+                                }
                             });
 
                             if (missingMedicines.length > 0) {

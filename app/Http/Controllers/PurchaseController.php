@@ -90,7 +90,9 @@ class PurchaseController extends Controller
         try {
             $totalAmount = 0;
             foreach ($request->items as $item) {
-                $totalAmount += $item['quantity'] * $item['purchase_price'];
+                $totalAmount += isset($item['item_total']) && $item['item_total'] > 0 
+                                ? (float)$item['item_total'] 
+                                : ($item['quantity'] * $item['purchase_price']);
             }
 
             $purchase = Purchase::create([
@@ -103,7 +105,9 @@ class PurchaseController extends Controller
             ]);
 
             foreach ($request->items as $item) {
-                $itemTotal = $item['quantity'] * $item['purchase_price'];
+                $itemTotal = isset($item['item_total']) && $item['item_total'] > 0 
+                             ? (float)$item['item_total'] 
+                             : ($item['quantity'] * $item['purchase_price']);
                 
                 PurchaseItem::create([
                     'purchase_id' => $purchase->id,
@@ -258,7 +262,9 @@ class PurchaseController extends Controller
             // Update purchase
             $totalAmount = 0;
             foreach ($request->items as $item) {
-                $totalAmount += $item['quantity'] * $item['purchase_price'];
+                $totalAmount += isset($item['item_total']) && $item['item_total'] > 0 
+                                ? (float)$item['item_total'] 
+                                : ($item['quantity'] * $item['purchase_price']);
             }
 
             $purchase->update([
@@ -281,7 +287,9 @@ class PurchaseController extends Controller
                     'quantity' => $item['quantity'],
                     'purchase_price' => $item['purchase_price'],
                     'sale_price' => $item['sale_price'],
-                    'total' => $item['quantity'] * $item['purchase_price'],
+                    'total' => isset($item['item_total']) && $item['item_total'] > 0 
+                               ? (float)$item['item_total'] 
+                               : ($item['quantity'] * $item['purchase_price']),
                 ]);
             }
 
@@ -393,17 +401,19 @@ class PurchaseController extends Controller
                     $srate = (float)($row[14] ?? 0);
                     $dis = (float)($row[16] ?? 0);
                     
-                    // The user's exact formula for the correct row total
-                    // Note: If 'dis' is a percentage, this might need to be ($qty * $srate) * (1 - $dis/100)
-                    // but we strictly follow (qty * srate) - dis as requested.
-                    $rowTotal = ($qty * $srate) - $dis;
+                    $totalQty = $qty + $fqty; // User requested not to add fqty to the total quantity
                     
-                    // Total inventory quantity should include free quantity
-                    $totalQty = $qty + $fqty;
+                    // Reduce discount from the rate (and add taxes)
+                    $grossTotal = $qty * $srate;
+                    $discountAmount = $grossTotal * ($dis / 100);
+                    $rowTotal = $grossTotal - $discountAmount;
+                    $cgstPercent = (float)($row[26] ?? 0);
+                    $sgstPercent = (float)($row[27] ?? 0);
+                    $taxPercent = $cgstPercent + $sgstPercent;
                     
-                    // Since the frontend UI calculates "Total = Qty * Purchase Price", 
-                    // we must divide the rowTotal by the totalQty so the UI total matches the expected bill exactly.
-                    $purchasePrice = $totalQty > 0 ? ($rowTotal / $totalQty) : $srate;
+                    $taxAmount = $rowTotal * ($taxPercent / 100);
+                    $rowTotal += $taxAmount; // Add Tax Amount
+                    $purchasePrice = $srate;
 
                     $items[] = [
                         'medicine_name' => $medicineName,
@@ -415,6 +425,7 @@ class PurchaseController extends Controller
                         'quantity' => $totalQty,
                         'purchase_price' => $purchasePrice,
                         'sale_price' => (float)($row[15] ?? 0),
+                        'item_total' => $rowTotal,
                     ];
                 }
             }
