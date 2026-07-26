@@ -59,6 +59,9 @@
                 </td>
                 <td class="header-right">
                     <strong>Patient Name :</strong> {{ strtoupper($sale->customer->name ?? $sale->customer_name ?? 'CASH') }}<br>
+                    @if($sale->customer || $sale->customer_phone)
+                    <strong>Patient Phone :</strong> {{ $sale->customer->phone ?? $sale->customer_phone }}<br>
+                    @endif
                     @if($sale->customer || $sale->customer_address)
                     <strong>Patient Address :</strong> {{ $sale->customer->address ?? $sale->customer_address }}<br>
                     @endif

@@ -400,13 +400,15 @@ class PurchaseController extends Controller
                     $fqty = (float)($row[11] ?? 0);
                     $srate = (float)($row[14] ?? 0);
                     $dis = (float)($row[16] ?? 0);
+                    $halfp = (float)($row[12] ?? 0);
                     
                     $totalQty = $qty + $fqty; // User requested not to add fqty to the total quantity
                     
                     // Reduce discount from the rate (and add taxes)
                     $grossTotal = $qty * $srate;
                     $discountAmount = $grossTotal * ($dis / 100);
-                    $rowTotal = $grossTotal - $discountAmount;
+                    $halfpAmount = $grossTotal * ($halfp / 100);
+                    $rowTotal = $grossTotal - $discountAmount - $halfpAmount;
                     $cgstPercent = (float)($row[26] ?? 0);
                     $sgstPercent = (float)($row[27] ?? 0);
                     $taxPercent = $cgstPercent + $sgstPercent;

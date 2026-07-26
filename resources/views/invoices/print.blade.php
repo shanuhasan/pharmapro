@@ -70,6 +70,9 @@
             <!-- Right Info -->
             <div class="w-4/12 p-2 text-sm leading-tight">
                 <div class="font-bold">Patient Name : {{ strtoupper($sale->customer->name ?? $sale->customer_name ?? '') }}</div>
+                @if($sale->customer || $sale->customer_phone)
+                <div>Patient Phone : {{ $sale->customer->phone ?? $sale->customer_phone }}</div>
+                @endif
                 @if($sale->customer || $sale->customer_address)
                 <div>Patient Address : {{ $sale->customer->address ?? $sale->customer_address }}</div>
                 @endif
