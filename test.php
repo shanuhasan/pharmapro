@@ -1,6 +1,6 @@
 <?php
 require 'vendor/autoload.php';
-$spreadsheet = \PhpOffice\PhpSpreadsheet\IOFactory::load("C:\\Users\\insph\\Downloads\\SB-26-232615.xls");
+$spreadsheet = \PhpOffice\PhpSpreadsheet\IOFactory::load("C:\\Users\\insph\\Downloads\\20442075273_DSPTI375610_with_header.csv");
 $worksheet = $spreadsheet->getActiveSheet();
 $rows = $worksheet->toArray();
 print_r($rows[0]);
