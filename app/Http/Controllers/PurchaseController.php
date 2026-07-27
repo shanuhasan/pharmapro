@@ -325,16 +325,16 @@ class PurchaseController extends Controller
             $supplierName = null;
             $invoiceNumber = null;
             $purchaseDate = null;
+            $overrideInvoiceNumber = null;
             
             $isAwacsFormat = false;
             if (isset($rows[0][0]) && trim($rows[0][0]) === 'TypeofRecord') {
                 $isAwacsFormat = true;
-            }
 
-            $overrideInvoiceNumber = null;
-            $fileName = $file->getClientOriginalName();
-            if (preg_match('/_([A-Z0-9]+)_with_header\.csv$/i', $fileName, $matches)) {
-                $overrideInvoiceNumber = $matches[1];
+                $fileName = $file->getClientOriginalName();
+                if (preg_match('/_([A-Z0-9]+)_with_header\.csv$/i', $fileName, $matches)) {
+                    $overrideInvoiceNumber = $matches[1];
+                }
             }
 
             $extraCharges = 0;
