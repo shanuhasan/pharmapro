@@ -83,9 +83,9 @@
                     <th>BATCH</th>
                     <th>EXP</th>
                     <th>STRIP</th>
-                    <th>QTY</th>
-                    <th class="text-right">MRP</th>
                     <th class="text-right">S.MRP</th>
+                    <th>QTY</th>
+                    <th class="text-right">MRP</th>                    
                     <th class="text-right">RATE</th>
                     <th>SGST</th>
                     <th>CGST</th>
@@ -107,9 +107,9 @@
                         $stripRate = $item->sale_price * $medPerStrip;
                     @endphp
                     <td>{{ $stripQty == floor($stripQty) ? (int)$stripQty : number_format($stripQty, 2) }}</td>
+                    <td class="text-right">{{ number_format($stripRate, 2) }}</td>
                     <td>{{ $item->quantity }}</td>
                     <td class="text-right">{{ number_format($item->sale_price, 2) }}</td>
-                    <td class="text-right">{{ number_format($stripRate, 2) }}</td>
                     <td class="text-right">{{ number_format($item->sale_price, 2) }}</td>
                     <td>{{ setting('sgst_percentage', '0') }}</td>
                     <td>{{ setting('cgst_percentage', '0') }}</td>
