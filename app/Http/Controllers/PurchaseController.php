@@ -331,6 +331,12 @@ class PurchaseController extends Controller
                 $isAwacsFormat = true;
             }
 
+            $overrideInvoiceNumber = null;
+            $fileName = $file->getClientOriginalName();
+            if (preg_match('/_([A-Z0-9]+)_with_header\.csv$/i', $fileName, $matches)) {
+                $overrideInvoiceNumber = $matches[1];
+            }
+
             $extraCharges = 0;
 
             foreach ($rows as $index => $row) {
@@ -368,6 +374,10 @@ class PurchaseController extends Controller
                 if ($supplier) {
                     $supplierId = $supplier->id;
                 }
+            }
+
+            if ($overrideInvoiceNumber) {
+                $invoiceNumber = $overrideInvoiceNumber;
             }
 
             return response()->json([
