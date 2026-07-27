@@ -17,7 +17,7 @@ class PurchaseController extends Controller
     public function index(Request $request)
     {
         if ($request->ajax()) {
-            $data = Purchase::with(['branch', 'supplier'])->select('purchases.*');
+            $data = Purchase::with(['branch', 'supplier'])->select('purchases.*')->latest();
             return DataTables::of($data)
                 ->addIndexColumn()
                 ->addColumn('branch', function($row){
@@ -482,7 +482,7 @@ class PurchaseController extends Controller
         $srateStr = $row[14] ?? 0;
         $mrpStr = $row[15] ?? 0;
         $disStr = $row[16] ?? 0;
-        $taxableAmtStr = 0;
+        $taxableAmtStr = $row[20] ?? 0;
         $halfpStr = $row[12] ?? 0;
         $cgstStr = $row[26] ?? 0;
         $sgstStr = $row[27] ?? 0;
@@ -546,15 +546,29 @@ class PurchaseController extends Controller
         $qty = (float)$qtyStr;
         $fqty = (float)$fqtyStr;
         $srate = (float)$srateStr;
-        $dis = (float)$disStr;
-        $halfp = (float)$halfpStr;
+        
+        $disStrClean = str_replace('%', '', trim($disStr ?? '0'));
+        $dis = (float)$disStrClean;
+        
+        $halfpStrClean = strtolower(str_replace('%', '', trim($halfpStr ?? '0')));
+        if (in_array($halfpStrClean, ['y', 'yes', 'h', 'true'])) {
+            $halfp = 0.5;
+        } else {
+            $halfp = (float)$halfpStrClean;
+        }
         
         $totalQty = $qty + $fqty;
         
         $grossTotal = $qty * $srate;
         $discountAmount = $grossTotal * ($dis / 100);
         $halfpAmount = $grossTotal * ($halfp / 100);
-        $rowTotal = $grossTotal - $discountAmount - $halfpAmount;
+        
+        $taxableAmt = isset($taxableAmtStr) ? (float)$taxableAmtStr : 0;
+        if ($taxableAmt > 0) {
+            $rowTotal = $taxableAmt;
+        } else {
+            $rowTotal = $grossTotal - $discountAmount - $halfpAmount;
+        }
 
         // echo "<pre>rowTotal - ";print_r($rowTotal);
         
