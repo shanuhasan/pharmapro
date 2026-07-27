@@ -82,8 +82,10 @@
                     <th>HSN</th>
                     <th>BATCH</th>
                     <th>EXP</th>
+                    <th>STRIP</th>
                     <th>QTY</th>
                     <th class="text-right">MRP</th>
+                    <th class="text-right">S.MRP</th>
                     <th class="text-right">RATE</th>
                     <th>SGST</th>
                     <th>CGST</th>
@@ -99,8 +101,15 @@
                     <td>{{ $item->hsn_code }}</td>
                     <td>{{ strtoupper($item->batch_number) }}</td>
                     <td>{{ $item->stock && $item->stock->expiry_date ? \Carbon\Carbon::parse($item->stock->expiry_date)->format('m/y') : '-' }}</td>
+                    @php
+                        $medPerStrip = $item->medicine->medicines_per_strip > 0 ? $item->medicine->medicines_per_strip : 1;
+                        $stripQty = $item->quantity / $medPerStrip;
+                        $stripRate = $item->sale_price * $medPerStrip;
+                    @endphp
+                    <td>{{ $stripQty == floor($stripQty) ? (int)$stripQty : number_format($stripQty, 2) }}</td>
                     <td>{{ $item->quantity }}</td>
                     <td class="text-right">{{ number_format($item->sale_price, 2) }}</td>
+                    <td class="text-right">{{ number_format($stripRate, 2) }}</td>
                     <td class="text-right">{{ number_format($item->sale_price, 2) }}</td>
                     <td>{{ setting('sgst_percentage', '0') }}</td>
                     <td>{{ setting('cgst_percentage', '0') }}</td>
@@ -111,11 +120,11 @@
                 <!-- Empty rows for spacing -->
                 @for($i = $sale->saleItems->count(); $i < 8; $i++)
                 <tr class="no-border-bottom" style="color: white;">
-                    <td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td>
+                    <td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td>
                 </tr>
                 @endfor
                 
-                <tr class="bottom-border"><td colspan="12"></td></tr>
+                <tr class="bottom-border"><td colspan="14"></td></tr>
             </tbody>
         </table>
 

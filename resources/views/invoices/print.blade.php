@@ -92,9 +92,11 @@
                     <th>HSN</th>
                     <th>BATCH</th>
                     <th>EXP</th>
+                    <th>STRIP</th>
                     <th>QTY</th>
                     <th class="text-right">MRP</th>
-                    <th class="text-right">RATE</th>
+                    <th class="text-right">S.MRP</th>
+                    <!-- <th class="text-right">RATE</th> -->
                     <th>SGST</th>
                     <th>CGST</th>
                     <th class="text-right">AMOUNT</th>
@@ -109,9 +111,16 @@
                     <td>{{ $item->hsn_code }}</td>
                     <td>{{ strtoupper($item->batch_number) }}</td>
                     <td>{{ $item->stock && $item->stock->expiry_date ? \Carbon\Carbon::parse($item->stock->expiry_date)->format('m/y') : '-' }}</td>
+                    @php
+                        $medPerStrip = $item->medicine->medicines_per_strip > 0 ? $item->medicine->medicines_per_strip : 1;
+                        $stripQty = $item->quantity / $medPerStrip;
+                        $stripRate = $item->sale_price * $medPerStrip;
+                    @endphp
+                    <td>{{ $stripQty == floor($stripQty) ? (int)$stripQty : number_format($stripQty, 2) }}</td>
                     <td>{{ $item->quantity }}</td>
                     <td class="text-right">{{ number_format($item->sale_price, 2) }}</td>
-                    <td class="text-right">{{ number_format($item->sale_price, 2) }}</td>
+                    <td class="text-right">{{ number_format($stripRate, 2) }}</td>
+                    <!-- <td class="text-right">{{ number_format($item->sale_price, 2) }}</td> -->
                     <td>{{ setting('sgst_percentage', '0') }}</td>
                     <td>{{ setting('cgst_percentage', '0') }}</td>
                     <td class="text-right font-bold">{{ number_format($item->total, 2) }}</td>
@@ -121,12 +130,12 @@
                 <!-- Empty rows for spacing to match physical invoice feel -->
                 @for($i = $sale->saleItems->count(); $i < 8; $i++)
                 <tr class="no-border-bottom text-transparent">
-                    <td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td>
+                    <td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td>
                 </tr>
                 @endfor
                 
                 <!-- Bottom border line for the items area -->
-                <tr class="h-0"><td colspan="12" class="p-0 border-b border-black"></td></tr>
+                <tr class="h-0"><td colspan="14" class="p-0 border-b border-black"></td></tr>
             </tbody>
         </table>
 
