@@ -15,7 +15,7 @@ class SaleController extends Controller
     public function index(Request $request)
     {
         if ($request->ajax()) {
-            $data = Sale::with(['branch', 'customer'])->select('sales.*');
+            $data = Sale::with(['branch', 'customer'])->select('sales.*')->latest();
             return DataTables::of($data)
                 ->addIndexColumn()
                 ->addColumn('branch', function($row){

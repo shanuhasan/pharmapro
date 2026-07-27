@@ -15,7 +15,7 @@ class ExpenseController extends Controller
         $branchId = auth()->user()->role === 'admin' ? $request->get('branch_id') : auth()->user()->branch_id;
 
         if ($request->ajax()) {
-            $data = Expense::with(['branch', 'user']);
+            $data = Expense::with(['branch', 'user'])->latest();
             if ($branchId) {
                 $data->where('branch_id', $branchId);
             }

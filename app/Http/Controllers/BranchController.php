@@ -11,7 +11,7 @@ class BranchController extends Controller
     public function index(Request $request)
     {
         if ($request->ajax()) {
-            $data = Branch::with('manager')->select('branches.*');
+            $data = Branch::with('manager')->select('branches.*')->latest();
             return \Yajra\DataTables\Facades\DataTables::of($data)
                     ->addIndexColumn()
                     ->addColumn('manager', function($row){

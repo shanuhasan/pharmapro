@@ -50,7 +50,7 @@ class MedicineController extends Controller
     {
         if ($request->ajax()) {
             $data = Medicine::with(['medicineCategory', 'unit'])
-                ->withSum('stock', 'quantity');
+                ->withSum('stock', 'quantity')->latest();
 
             if ($request->has('category_id') && !empty($request->category_id)) {
                 $data->where('category_id', $request->category_id);

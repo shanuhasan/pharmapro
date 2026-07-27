@@ -9,7 +9,7 @@ class UnitController extends Controller
 {
     public function index()
     {
-        $units = Unit::paginate(10);
+        $units = Unit::latest()->paginate(10);
         return view('units.index', compact('units'));
     }
 

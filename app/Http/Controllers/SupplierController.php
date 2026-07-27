@@ -11,7 +11,7 @@ class SupplierController extends Controller
     public function index(Request $request)
     {
         if ($request->ajax()) {
-            $data = Supplier::query();
+            $data = Supplier::query()->latest();
             return DataTables::of($data)
                 ->addIndexColumn()
                 ->addColumn('status', function($row){

@@ -13,7 +13,7 @@ class UserController extends Controller
     public function index(Request $request)
     {
         if ($request->ajax()) {
-            $data = User::with('branch');
+            $data = User::with('branch')->latest();
             return DataTables::of($data)
                 ->addIndexColumn()
                 ->addColumn('branch', function($row){

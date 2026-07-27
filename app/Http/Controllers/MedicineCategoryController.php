@@ -9,7 +9,7 @@ class MedicineCategoryController extends Controller
 {
     public function index()
     {
-        $categories = MedicineCategory::paginate(10);
+        $categories = MedicineCategory::latest()->paginate(10);
         return view('medicine_categories.index', compact('categories'));
     }
 
