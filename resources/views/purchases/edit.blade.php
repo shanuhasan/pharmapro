@@ -122,9 +122,7 @@
         @endforeach
     </select>
 
-    <script src="{{ asset('vendor/jquery/jquery.min.js') }}"></script>
-    <link href="{{ asset('vendor/select2/select2.min.css') }}" rel="stylesheet" />
-    <script src="{{ asset('vendor/select2/select2.min.js') }}"></script>
+
     <script>
         $(document).ready(function() {
             let rowIdx = 0;

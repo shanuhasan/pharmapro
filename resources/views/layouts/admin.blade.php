@@ -14,11 +14,76 @@
         <!-- FontAwesome -->
         <link rel="stylesheet" href="{{ asset('vendor/fontawesome/css/all.min.css') }}">
 
+        <!-- jQuery and Select2 -->
+        <script src="{{ asset('vendor/jquery/jquery.min.js') }}"></script>
+        <link href="{{ asset('vendor/select2/select2.min.css') }}" rel="stylesheet" />
+        <script src="{{ asset('vendor/select2/select2.min.js') }}"></script>
+        <script>
+            $(document).ready(function() {
+                $('select:not(.hidden):not(.no-select2)').select2({
+                    width: '100%'
+                });
+            });
+        </script>
+
         <!-- Scripts -->
         @vite(['resources/css/app.css', 'resources/js/app.js'])
 
         <style>
             [x-cloak] { display: none !important; }
+            
+            /* Select2 Tailwind CSS styling */
+            .select2-container .select2-selection--single {
+                height: 38px !important;
+                border: 1px solid #d1d5db !important;
+                border-radius: 0.375rem !important;
+                box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05) !important;
+                padding-top: 0.35rem;
+                padding-left: 0.5rem;
+                font-size: 0.875rem !important;
+                background-color: #fff;
+            }
+            .select2-container--default .select2-selection--single .select2-selection__arrow {
+                height: 36px !important;
+                right: 5px !important;
+            }
+            .select2-container--default .select2-selection--single .select2-selection__rendered {
+                color: #111827 !important;
+                line-height: 22px !important;
+                padding-left: 0 !important;
+            }
+            .select2-container--default.select2-container--focus .select2-selection--single,
+            .select2-container--default.select2-container--open .select2-selection--single {
+                border-color: #6366f1 !important;
+                box-shadow: 0 0 0 1px #6366f1 !important;
+                outline: 0 !important;
+            }
+            .select2-dropdown {
+                border-color: #d1d5db !important;
+                border-radius: 0.375rem !important;
+                box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06) !important;
+                margin-top: 2px;
+                z-index: 9999;
+            }
+            .select2-search__field {
+                border-radius: 0.375rem !important;
+                border: 1px solid #d1d5db !important;
+                padding: 0.375rem 0.75rem !important;
+                font-size: 0.875rem !important;
+            }
+            .select2-search__field:focus {
+                border-color: #6366f1 !important;
+                box-shadow: 0 0 0 1px #6366f1 !important;
+                outline: 0 !important;
+            }
+            .select2-container--default .select2-results__option--highlighted.select2-results__option--selectable {
+                background-color: #6366f1 !important;
+                color: white !important;
+            }
+            .select2-results__option {
+                padding: 0.5rem 0.75rem !important;
+                font-size: 0.875rem !important;
+            }
         </style>
     </head>
     <body class="font-sans antialiased bg-gray-100" x-data="{ sidebarOpen: false }">
