@@ -5,7 +5,7 @@
     <title>Invoice - {{ $sale->invoice_number }}</title>
     <style>
         body { font-family: 'Helvetica', 'Arial', sans-serif; font-size: 11px; color: #000; margin: 0; padding: 0; }
-        .invoice-box { width: 100%; max-width: 800px; margin: auto; border: 1px solid #000; }
+        .invoice-box { width: 100%; border: 1px solid #000; position: relative; z-index: 1; }
         table { width: 100%; border-collapse: collapse; }
         
         /* Layout Table */
@@ -30,7 +30,7 @@
         .footer-left { width: 65%; border-right: 1px solid #000; border-bottom: 1px solid #000; }
         .footer-right { width: 35%; border-bottom: 1px solid #000; padding: 0; }
         
-        .summary-box { width: 100%; border-collapse: collapse; height: 100%; }
+        .summary-box { width: 100%; border-collapse: collapse; }
         .summary-box td { border-bottom: 1px solid #000; padding: 4px; }
         .summary-box td:first-child { border-right: 1px solid #000; }
         .summary-box tr:last-child td { border-bottom: none; }
@@ -40,40 +40,23 @@
         
         .watermark {
             position: absolute;
-            top: 30%;
-            left: 15%;
-            width: 70%;
+            top: 50%;
+            left: 0;
+            width: 100%;
             text-align: center;
             opacity: 0.1;
             z-index: -1;
+            margin-top: -100px;
         }
         .watermark img {
-            max-width: 100%;
+            max-width: 500px;
             max-height: 500px;
         }
     </style>
 </head>
 <body>
-    @if(setting('pharmacy_logo'))
-        @php
-            $imagePath = public_path(setting('pharmacy_logo'));
-            $base64 = '';
-            if(file_exists($imagePath) && is_file($imagePath)) {
-                $type = pathinfo($imagePath, PATHINFO_EXTENSION);
-                $data = file_get_contents($imagePath);
-                $base64 = 'data:image/' . $type . ';base64,' . base64_encode($data);
-            }
-        @endphp
-        @if($base64)
-            <div class="watermark">
-                <img src="{{ $base64 }}" alt="Background Logo">
-            </div>
-        @endif
-    @endif
-
     <div class="invoice-box">
-        
-        <!-- Header Section -->
+
         <table class="header-table">
             <tr>
                 <td class="header-left">
@@ -103,7 +86,24 @@
         </table>
 
         <!-- Items Table -->
-        <table class="items-table" style="border-top: none; border-left: none; border-right: none;">
+        <div style="position: relative;">
+            @if(setting('pharmacy_logo'))
+                @php
+                    $imagePath = public_path(setting('pharmacy_logo'));
+                    $base64 = '';
+                    if(file_exists($imagePath) && is_file($imagePath)) {
+                        $type = pathinfo($imagePath, PATHINFO_EXTENSION);
+                        $data = file_get_contents($imagePath);
+                        $base64 = 'data:image/' . $type . ';base64,' . base64_encode($data);
+                    }
+                @endphp
+                @if($base64)
+                    <div class="watermark">
+                        <img src="{{ $base64 }}" alt="Background Logo">
+                    </div>
+                @endif
+            @endif
+            <table class="items-table" style="border-top: none; border-left: none; border-right: none;">
             <thead>
                 <tr>
                     <th style="width: 20px;">SN</th>
@@ -156,7 +156,8 @@
                 
                 <tr class="bottom-border"><td colspan="14"></td></tr>
             </tbody>
-        </table>
+            </table>
+        </div>
 
         <!-- Summary Section -->
         <table class="footer-table" style="border-bottom: 1px solid #000;">

@@ -74,13 +74,6 @@
     </div>
 
     <div class="invoice-box bg-white">
-        @if(setting('pharmacy_logo'))
-        <div class="watermark">
-            <img src="{{ asset(setting('pharmacy_logo')) }}" alt="Background Logo">
-        </div>
-        @endif
-        
-        <div class="invoice-content">
         <!-- Header Section -->
         <div class="flex w-full b-bottom">
             <!-- Left Info -->
@@ -114,7 +107,13 @@
         </div>
 
         <!-- Items Table -->
-        <table class="items-table border-t-0 border-l-0 border-r-0">
+        <div class="relative items-table-wrapper">
+            @if(setting('pharmacy_logo'))
+            <div class="watermark">
+                <img src="{{ asset(setting('pharmacy_logo')) }}" alt="Background Logo">
+            </div>
+            @endif
+            <table class="items-table border-t-0 border-l-0 border-r-0 relative z-10 bg-transparent">
             <thead>
                 <tr>
                     <th class="w-8">SN</th>
@@ -168,7 +167,8 @@
                 <!-- Bottom border line for the items area -->
                 <tr class="h-0"><td colspan="14" class="p-0 border-b border-black"></td></tr>
             </tbody>
-        </table>
+            </table>
+        </div>
 
         <!-- Summary Section -->
         <div class="flex w-full">
@@ -227,7 +227,6 @@
             <div class="w-4/12 text-center pt-8">
                 <div class="font-bold border-t border-gray-400 inline-block px-4">Authorised Signatory</div>
             </div>
-        </div>
         </div>
 
     </div>
