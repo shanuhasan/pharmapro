@@ -14,7 +14,7 @@ class StockController extends Controller
     public function index(Request $request)
     {
         if ($request->ajax()) {
-            $data = Stock::with(['branch', 'medicine'])->latest();
+            $data = Stock::with(['branch', 'medicine'])->select('stock.*')->latest('stock.created_at');
             
             if ($request->has('branch_id') && !empty($request->branch_id)) {
                 $data->where('branch_id', $request->branch_id);

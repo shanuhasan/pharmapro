@@ -10,11 +10,7 @@
             <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
                 <div class="p-6 text-gray-900">
 
-                    @if(session('success'))
-                        <div class="mb-4 bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative">
-                            {{ session('success') }}
-                        </div>
-                    @endif
+
 
                     <form action="{{ route('settings.store') }}" method="POST" enctype="multipart/form-data">
                         @csrf
