@@ -36,6 +36,31 @@
         
         .summary-box { width: 100%; border-collapse: collapse; }
         .summary-box td { border: 1px solid #000; padding: 4px 6px; font-size: 12px; }
+        
+        .watermark {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            opacity: 0.1;
+            z-index: 1;
+            pointer-events: none;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .watermark img {
+            max-width: 500px;
+            max-height: 500px;
+        }
+        .invoice-box {
+            position: relative;
+            z-index: 2;
+        }
+        .invoice-content {
+            position: relative;
+            z-index: 3;
+        }
     </style>
 </head>
 <body class="bg-gray-100 py-10 print:py-0">
@@ -49,7 +74,13 @@
     </div>
 
     <div class="invoice-box bg-white">
+        @if(setting('pharmacy_logo'))
+        <div class="watermark">
+            <img src="{{ asset(setting('pharmacy_logo')) }}" alt="Background Logo">
+        </div>
+        @endif
         
+        <div class="invoice-content">
         <!-- Header Section -->
         <div class="flex w-full b-bottom">
             <!-- Left Info -->
@@ -196,6 +227,7 @@
             <div class="w-4/12 text-center pt-8">
                 <div class="font-bold border-t border-gray-400 inline-block px-4">Authorised Signatory</div>
             </div>
+        </div>
         </div>
 
     </div>

@@ -37,9 +37,39 @@
         
         .signatory { width: 100%; padding: 4px; text-align: right; margin-top: 30px; }
         .signatory span { border-top: 1px solid #000; padding: 4px 10px; font-weight: bold; display: inline-block; margin-right: 20px; }
+        
+        .watermark {
+            position: absolute;
+            top: 30%;
+            left: 15%;
+            width: 70%;
+            text-align: center;
+            opacity: 0.1;
+            z-index: -1;
+        }
+        .watermark img {
+            max-width: 100%;
+            max-height: 500px;
+        }
     </style>
 </head>
 <body>
+    @if(setting('pharmacy_logo'))
+        @php
+            $imagePath = public_path(setting('pharmacy_logo'));
+            $base64 = '';
+            if(file_exists($imagePath) && is_file($imagePath)) {
+                $type = pathinfo($imagePath, PATHINFO_EXTENSION);
+                $data = file_get_contents($imagePath);
+                $base64 = 'data:image/' . $type . ';base64,' . base64_encode($data);
+            }
+        @endphp
+        @if($base64)
+            <div class="watermark">
+                <img src="{{ $base64 }}" alt="Background Logo">
+            </div>
+        @endif
+    @endif
 
     <div class="invoice-box">
         
