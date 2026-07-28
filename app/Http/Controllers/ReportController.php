@@ -28,19 +28,42 @@ class ReportController extends Controller
     public function sales(Request $request)
     {
         $branchId = $this->getBranchId($request);
+        $supplierId = $request->get('supplier_id');
         $fromDate = $request->get('from_date');
         $toDate = $request->get('to_date');
 
         if ($request->ajax()) {
-            $query = Sale::with(['branch', 'customer'])->where('status', 'completed');
+            $query = Sale::with(['branch', 'customer', 'saleItems.stock'])->where('status', 'completed');
             if ($branchId) $query->where('branch_id', $branchId);
             if ($fromDate) $query->whereDate('sale_date', '>=', $fromDate);
             if ($toDate) $query->whereDate('sale_date', '<=', $toDate);
+            if ($supplierId) {
+                $query->whereHas('saleItems.stock', function($q) use ($supplierId) {
+                    $q->whereExists(function($sq) use ($supplierId) {
+                        $sq->select(\Illuminate\Support\Facades\DB::raw(1))
+                           ->from('purchase_items')
+                           ->join('purchases', 'purchases.id', '=', 'purchase_items.purchase_id')
+                           ->whereColumn('purchase_items.medicine_id', 'stock.medicine_id')
+                           ->whereColumn('purchase_items.batch_number', 'stock.batch_number')
+                           ->where('purchases.supplier_id', $supplierId);
+                    });
+                });
+            }
 
             return DataTables::of($query)
                 ->addIndexColumn()
                 ->editColumn('invoice_number', function($r){
                     return '<a href="'.route('invoice.print', $r->id).'" target="_blank" class="text-blue-600 hover:underline font-bold">'.$r->invoice_number.'</a>';
+                })
+                ->addColumn('suppliers', function($r){
+                    $suppliers = [];
+                    foreach($r->saleItems as $item) {
+                        if ($item->stock && $item->stock->supplier_name !== 'Unknown') {
+                            $suppliers[] = $item->stock->supplier_name;
+                        }
+                    }
+                    $uniqueSuppliers = array_unique($suppliers);
+                    return count($uniqueSuppliers) > 0 ? implode(', ', $uniqueSuppliers) : 'Unknown';
                 })
                 ->editColumn('sale_date', fn($r) => Carbon::parse($r->sale_date)->format('d M Y'))
                 ->editColumn('total_amount', fn($r) => setting('currency_symbol', '₹') . ' ' . number_format($r->total_amount, 2))
@@ -57,21 +80,42 @@ class ReportController extends Controller
 
         // --- Export Logic ---
         if ($request->has('export')) {
-            $query = Sale::with(['branch', 'customer'])->where('status', 'completed');
+            $query = Sale::with(['branch', 'customer', 'saleItems.stock'])->where('status', 'completed');
             if ($branchId) $query->where('branch_id', $branchId);
             if ($fromDate) $query->whereDate('sale_date', '>=', $fromDate);
             if ($toDate) $query->whereDate('sale_date', '<=', $toDate);
+            if ($supplierId) {
+                $query->whereHas('saleItems.stock', function($q) use ($supplierId) {
+                    $q->whereExists(function($sq) use ($supplierId) {
+                        $sq->select(\Illuminate\Support\Facades\DB::raw(1))
+                           ->from('purchase_items')
+                           ->join('purchases', 'purchases.id', '=', 'purchase_items.purchase_id')
+                           ->whereColumn('purchase_items.medicine_id', 'stock.medicine_id')
+                           ->whereColumn('purchase_items.batch_number', 'stock.batch_number')
+                           ->where('purchases.supplier_id', $supplierId);
+                    });
+                });
+            }
             
             $sales = $query->get();
             
-            $headers = ['Invoice Number', 'Date', 'Branch', 'Customer', 'Amount ($)'];
+            $headers = ['Invoice Number', 'Date', 'Branch', 'Customer', 'Supplier(s)', 'Amount ($)'];
             $rows = [];
             foreach ($sales as $sale) {
+                $suppliers = [];
+                foreach($sale->saleItems as $item) {
+                    if ($item->stock && $item->stock->supplier_name !== 'Unknown') {
+                        $suppliers[] = $item->stock->supplier_name;
+                    }
+                }
+                $supplierNames = count($suppliers) > 0 ? implode(', ', array_unique($suppliers)) : 'Unknown';
+
                 $rows[] = [
                     $sale->invoice_number,
                     Carbon::parse($sale->sale_date)->format('d M Y'),
                     $sale->branch->name ?? 'N/A',
                     $sale->customer->name ?? 'Walk-in',
+                    $supplierNames,
                     number_format($sale->total_amount, 2)
                 ];
             }
@@ -86,7 +130,8 @@ class ReportController extends Controller
         }
 
         $branches = Branch::all();
-        return view('reports.sales', compact('branches', 'branchId'));
+        $suppliers = Supplier::all();
+        return view('reports.sales', compact('branches', 'branchId', 'suppliers'));
     }
 
     // --- 2. PURCHASE REPORT ---
@@ -195,6 +240,7 @@ class ReportController extends Controller
     public function expiry(Request $request)
     {
         $branchId = $this->getBranchId($request);
+        $supplierId = $request->get('supplier_id');
         $days = (int) $request->get('days', 30);
         $threshold = Carbon::today()->addDays($days);
 
@@ -204,9 +250,20 @@ class ReportController extends Controller
                           ->where('expiry_date', '<=', $threshold)
                           ->where('expiry_date', '>=', Carbon::today());
             if ($branchId) $query->where('branch_id', $branchId);
+            if ($supplierId) {
+                $query->whereExists(function($sq) use ($supplierId) {
+                    $sq->select(\Illuminate\Support\Facades\DB::raw(1))
+                       ->from('purchase_items')
+                       ->join('purchases', 'purchases.id', '=', 'purchase_items.purchase_id')
+                       ->whereColumn('purchase_items.medicine_id', 'stock.medicine_id')
+                       ->whereColumn('purchase_items.batch_number', 'stock.batch_number')
+                       ->where('purchases.supplier_id', $supplierId);
+                });
+            }
 
             return DataTables::of($query)
                 ->addIndexColumn()
+                ->addColumn('supplier', fn($r) => $r->supplier_name)
                 ->editColumn('expiry_date', fn($r) => '<span class="text-red-600 font-bold">' . Carbon::parse($r->expiry_date)->format('d M Y') . '</span>')
                 ->rawColumns(['expiry_date'])
                 ->make(true);
@@ -218,13 +275,24 @@ class ReportController extends Controller
                           ->where('expiry_date', '<=', $threshold)
                           ->where('expiry_date', '>=', Carbon::today());
             if ($branchId) $query->where('branch_id', $branchId);
+            if ($supplierId) {
+                $query->whereExists(function($sq) use ($supplierId) {
+                    $sq->select(\Illuminate\Support\Facades\DB::raw(1))
+                       ->from('purchase_items')
+                       ->join('purchases', 'purchases.id', '=', 'purchase_items.purchase_id')
+                       ->whereColumn('purchase_items.medicine_id', 'stock.medicine_id')
+                       ->whereColumn('purchase_items.batch_number', 'stock.batch_number')
+                       ->where('purchases.supplier_id', $supplierId);
+                });
+            }
             
             $stocks = $query->get();
-            $headers = ['Medicine', 'Branch', 'Batch', 'Qty', 'Expiry Date'];
+            $headers = ['Medicine', 'Supplier', 'Branch', 'Batch', 'Qty', 'Expiry Date'];
             $rows = [];
             foreach ($stocks as $s) {
                 $rows[] = [
                     $s->medicine->name,
+                    $s->supplier_name,
                     $s->branch->name ?? 'N/A',
                     $s->batch_number,
                     $s->quantity,
@@ -241,7 +309,8 @@ class ReportController extends Controller
         }
 
         $branches = Branch::all();
-        return view('reports.expiry', compact('branches', 'branchId'));
+        $suppliers = Supplier::all();
+        return view('reports.expiry', compact('branches', 'branchId', 'suppliers'));
     }
 
     // --- 5. CUSTOMER REPORT ---
@@ -284,6 +353,7 @@ class ReportController extends Controller
     public function profit(Request $request)
     {
         $branchId = $this->getBranchId($request);
+        $supplierId = $request->get('supplier_id');
         $fromDate = $request->get('from_date');
         $toDate = $request->get('to_date');
 
@@ -295,10 +365,23 @@ class ReportController extends Controller
                                  if ($fromDate) $q->whereDate('sale_date', '>=', $fromDate);
                                  if ($toDate) $q->whereDate('sale_date', '<=', $toDate);
                              });
+            if ($supplierId) {
+                $query->whereHas('stock', function($q) use ($supplierId) {
+                    $q->whereExists(function($sq) use ($supplierId) {
+                        $sq->select(\Illuminate\Support\Facades\DB::raw(1))
+                           ->from('purchase_items')
+                           ->join('purchases', 'purchases.id', '=', 'purchase_items.purchase_id')
+                           ->whereColumn('purchase_items.medicine_id', 'stock.medicine_id')
+                           ->whereColumn('purchase_items.batch_number', 'stock.batch_number')
+                           ->where('purchases.supplier_id', $supplierId);
+                    });
+                });
+            }
 
             return DataTables::of($query)
                 ->addIndexColumn()
                 ->addColumn('sale_date', fn($r) => Carbon::parse($r->sale->sale_date)->format('d M Y'))
+                ->addColumn('supplier', fn($r) => $r->stock ? $r->stock->supplier_name : 'Unknown')
                 ->addColumn('purchase_cost', fn($r) => $r->stock ? ($r->stock->purchase_price * $r->quantity) : 0)
                 ->addColumn('sale_revenue', fn($r) => $r->total)
                 ->addColumn('profit', function($r){
@@ -318,18 +401,33 @@ class ReportController extends Controller
                                  if ($fromDate) $q->whereDate('sale_date', '>=', $fromDate);
                                  if ($toDate) $q->whereDate('sale_date', '<=', $toDate);
                              });
+            if ($supplierId) {
+                $query->whereHas('stock', function($q) use ($supplierId) {
+                    $q->whereExists(function($sq) use ($supplierId) {
+                        $sq->select(\Illuminate\Support\Facades\DB::raw(1))
+                           ->from('purchase_items')
+                           ->join('purchases', 'purchases.id', '=', 'purchase_items.purchase_id')
+                           ->whereColumn('purchase_items.medicine_id', 'stock.medicine_id')
+                           ->whereColumn('purchase_items.batch_number', 'stock.batch_number')
+                           ->where('purchases.supplier_id', $supplierId);
+                    });
+                });
+            }
             
             $items = $query->get();
-            $headers = ['Date', 'Invoice', 'Medicine', 'Qty', 'Total Cost (' . setting('currency_symbol', '₹') . ')', 'Total Revenue (' . setting('currency_symbol', '₹') . ')', 'Net Profit (' . setting('currency_symbol', '₹') . ')'];
+            $headers = ['Date', 'Invoice', 'Medicine', 'Supplier', 'Qty', 'Total Cost (' . setting('currency_symbol', '₹') . ')', 'Total Revenue (' . setting('currency_symbol', '₹') . ')', 'Net Profit (' . setting('currency_symbol', '₹') . ')'];
             $rows = [];
             
             foreach ($items as $r) {
                 $cost = $r->stock ? ($r->stock->purchase_price * $r->quantity) : 0;
                 $profit = $r->total - $cost;
+                $supplier = $r->stock ? $r->stock->supplier_name : 'Unknown';
+                
                 $rows[] = [
                     Carbon::parse($r->sale->sale_date)->format('d M Y'),
                     $r->sale->invoice_number,
                     $r->medicine->name,
+                    $supplier,
                     $r->quantity,
                     number_format($cost, 2),
                     number_format($r->total, 2),
@@ -347,7 +445,8 @@ class ReportController extends Controller
         }
 
         $branches = Branch::all();
-        return view('reports.profit', compact('branches', 'branchId'));
+        $suppliers = Supplier::all();
+        return view('reports.profit', compact('branches', 'branchId', 'suppliers'));
     }
 
     // --- 7. MEDICINE-WISE SALES ---

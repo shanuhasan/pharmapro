@@ -13,7 +13,7 @@
                     <!-- Filters -->
                     <div class="mb-6 bg-gray-50 p-4 rounded-lg border flex flex-col md:flex-row gap-4 items-end">
                         @if(auth()->user()->role === 'admin')
-                        <div class="w-full md:w-1/4">
+                        <div class="w-full flex-1">
                             <label class="block text-sm font-medium text-gray-700">Branch</label>
                             <select id="filter_branch" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm">
                                 <option value="">All Branches</option>
@@ -23,15 +23,24 @@
                             </select>
                         </div>
                         @endif
-                        <div class="w-full md:w-1/4">
+                        <div class="w-full flex-1">
+                            <label class="block text-sm font-medium text-gray-700">Supplier</label>
+                            <select id="filter_supplier" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm">
+                                <option value="">All Suppliers</option>
+                                @foreach($suppliers as $s)
+                                    <option value="{{ $s->id }}">{{ $s->name }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div class="w-full flex-1">
                             <label class="block text-sm font-medium text-gray-700">From Date</label>
                             <input type="date" id="filter_from" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm">
                         </div>
-                        <div class="w-full md:w-1/4">
+                        <div class="w-full flex-1">
                             <label class="block text-sm font-medium text-gray-700">To Date</label>
                             <input type="date" id="filter_to" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm">
                         </div>
-                        <div class="w-full md:w-1/4 flex space-x-2">
+                        <div class="w-full flex-1 flex space-x-2">
                             <button id="btn_filter" class="w-full bg-blue-600 text-white font-bold py-2 px-4 rounded shadow hover:bg-blue-700">Filter</button>
                             <button id="btn_export_pdf" class="bg-red-500 text-white font-bold py-2 px-3 rounded shadow hover:bg-red-600" title="Export PDF"><i class="fas fa-file-pdf"></i></button>
                             <button id="btn_export_excel" class="bg-green-500 text-white font-bold py-2 px-3 rounded shadow hover:bg-green-600" title="Export Excel"><i class="fas fa-file-excel"></i></button>
@@ -45,6 +54,7 @@
                                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Date</th>
                                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Branch</th>
                                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Customer</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Supplier(s)</th>
                                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Amount</th>
                                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Action</th>
                             </tr>
@@ -92,6 +102,7 @@
                     url: '{{ route("reports.sales") }}',
                     data: function (d) {
                         d.branch_id = $('#filter_branch').val();
+                        d.supplier_id = $('#filter_supplier').val();
                         d.from_date = $('#filter_from').val();
                         d.to_date = $('#filter_to').val();
                     }
@@ -101,6 +112,7 @@
                     {data: 'sale_date', name: 'sale_date'},
                     {data: 'branch.name', name: 'branch.name'},
                     {data: 'customer.name', name: 'customer.name', defaultContent: 'Walk-in'},
+                    {data: 'suppliers', name: 'suppliers', orderable: false, searchable: false},
                     {data: 'total_amount', name: 'total_amount', className: 'font-bold text-green-600'},
                     {data: 'action', name: 'action', orderable: false, searchable: false},
                 ]
@@ -113,6 +125,7 @@
             function buildExportUrl(type) {
                 let url = '{{ route("reports.sales") }}?export=' + type;
                 if($('#filter_branch').length) url += '&branch_id=' + $('#filter_branch').val();
+                if($('#filter_supplier').length) url += '&supplier_id=' + $('#filter_supplier').val();
                 url += '&from_date=' + $('#filter_from').val() + '&to_date=' + $('#filter_to').val();
                 return url;
             }

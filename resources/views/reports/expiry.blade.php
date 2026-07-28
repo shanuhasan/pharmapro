@@ -12,7 +12,7 @@
                     
                     <div class="mb-6 bg-gray-50 p-4 rounded-lg border flex flex-col md:flex-row gap-4 items-end">
                         @if(auth()->user()->role === 'admin')
-                        <div class="w-full md:w-1/3">
+                        <div class="w-full flex-1">
                             <label class="block text-sm font-medium text-gray-700">Branch</label>
                             <select id="filter_branch" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm">
                                 <option value="">All Branches</option>
@@ -22,7 +22,16 @@
                             </select>
                         </div>
                         @endif
-                        <div class="w-full md:w-1/3">
+                        <div class="w-full flex-1">
+                            <label class="block text-sm font-medium text-gray-700">Supplier</label>
+                            <select id="filter_supplier" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm">
+                                <option value="">All Suppliers</option>
+                                @foreach($suppliers as $s)
+                                    <option value="{{ $s->id }}">{{ $s->name }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div class="w-full flex-1">
                             <label class="block text-sm font-medium text-gray-700">Expiring Within</label>
                             <select id="filter_days" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm">
                                 <option value="30">30 Days</option>
@@ -30,7 +39,7 @@
                                 <option value="90">90 Days</option>
                             </select>
                         </div>
-                        <div class="w-full md:w-1/3 flex space-x-2">
+                        <div class="w-full flex-1 flex space-x-2">
                             <button id="btn_filter" class="w-full bg-blue-600 text-white font-bold py-2 px-4 rounded shadow hover:bg-blue-700">Filter</button>
                             <button id="btn_export_pdf" class="bg-red-500 text-white font-bold py-2 px-3 rounded shadow hover:bg-red-600" title="Export PDF"><i class="fas fa-file-pdf"></i></button>
                             <button id="btn_export_excel" class="bg-green-500 text-white font-bold py-2 px-3 rounded shadow hover:bg-green-600" title="Export Excel"><i class="fas fa-file-excel"></i></button>
@@ -41,6 +50,7 @@
                         <thead class="bg-gray-50">
                             <tr>
                                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Medicine</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Supplier</th>
                                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Branch</th>
                                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Batch</th>
                                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Qty</th>
@@ -66,11 +76,13 @@
                     url: '{{ route("reports.expiry") }}',
                     data: function (d) {
                         d.branch_id = $('#filter_branch').val();
+                        d.supplier_id = $('#filter_supplier').val();
                         d.days = $('#filter_days').val();
                     }
                 },
                 columns: [
                     {data: 'medicine.name', name: 'medicine.name'},
+                    {data: 'supplier', name: 'supplier', orderable: false, searchable: false},
                     {data: 'branch.name', name: 'branch.name'},
                     {data: 'batch_number', name: 'batch_number'},
                     {data: 'quantity', name: 'quantity', className: 'font-bold'},
@@ -83,6 +95,7 @@
             function buildExportUrl(type) {
                 let url = '{{ route("reports.expiry") }}?export=' + type;
                 if($('#filter_branch').length) url += '&branch_id=' + $('#filter_branch').val();
+                if($('#filter_supplier').length) url += '&supplier_id=' + $('#filter_supplier').val();
                 url += '&days=' + $('#filter_days').val();
                 return url;
             }

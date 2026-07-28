@@ -56,5 +56,17 @@ class Stock extends Model
         }
         return '<span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">Healthy</span>';
     }
+    public function getSupplierNameAttribute()
+    {
+        $purchaseItem = \App\Models\PurchaseItem::with('purchase.supplier')
+            ->where('medicine_id', $this->medicine_id)
+            ->where('batch_number', $this->batch_number)
+            ->latest()
+            ->first();
+            
+        return $purchaseItem && $purchaseItem->purchase && $purchaseItem->purchase->supplier
+            ? $purchaseItem->purchase->supplier->name
+            : 'Unknown';
+    }
 }
 
