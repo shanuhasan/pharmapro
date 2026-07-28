@@ -327,10 +327,11 @@ class PurchaseController extends Controller
             $purchaseDate = null;
             $overrideInvoiceNumber = null;
             
-            $isAwacsFormat = false;
+            $isRetailShaktiFormat = false;
             $isNeelkanthPharmaFormat = false;
+            $isDrFormat = false;
             if (isset($rows[0][0]) && trim($rows[0][0]) === 'TypeofRecord') {
-                $isAwacsFormat = true;
+                $isRetailShaktiFormat = true;
 
                 $fileName = $file->getClientOriginalName();
                 if (preg_match('/_([A-Z0-9]+)_with_header\.csv$/i', $fileName, $matches)) {
@@ -338,6 +339,12 @@ class PurchaseController extends Controller
                 }
             } elseif (isset($rows[0][0]) && trim($rows[0][0]) === 'Product Code' && isset($rows[0][1]) && trim($rows[0][1]) === 'Product Name') {
                 $isNeelkanthPharmaFormat = true;
+            } elseif (isset($rows[0][0]) && trim($rows[0][0]) === 'SUPPLIER' && isset($rows[0][1]) && trim($rows[0][1]) === 'BILL NO.') {
+                $isDrFormat = true;
+            }
+
+            if (!$isRetailShaktiFormat && !$isNeelkanthPharmaFormat && !$isDrFormat) {
+                return response()->json(['error' => 'Invalid file format. Please upload a supported format.'], 400);
             }
 
             $extraCharges = 0;
@@ -346,12 +353,12 @@ class PurchaseController extends Controller
                 if ($index === 0) continue; // Skip header row
                 
                 $parsedData = null;
-                if ($isAwacsFormat) {
-                    $parsedData = $this->parseAwacsRow($row, $supplierName, $invoiceNumber, $purchaseDate);
+                if ($isRetailShaktiFormat) {
+                    $parsedData = $this->parseRetailShaktiRow($row, $supplierName, $invoiceNumber, $purchaseDate);
                 } elseif ($isNeelkanthPharmaFormat) {
                     $parsedData = $this->parseNeelkanthPharmaRow($row, $supplierName, $invoiceNumber, $purchaseDate);
-                } else {
-                    $parsedData = $this->parseStandardRow($row, $supplierName, $invoiceNumber, $purchaseDate);
+                } elseif ($isDrFormat) {
+                    $parsedData = $this->parseDrRow($row, $supplierName, $invoiceNumber, $purchaseDate);
                 }
 
                 if (!$parsedData) continue;
@@ -401,7 +408,7 @@ class PurchaseController extends Controller
         }
     }
 
-    private function parseAwacsRow($row, &$supplierName, &$invoiceNumber, &$purchaseDate)
+    private function parseRetailShaktiRow($row, &$supplierName, &$invoiceNumber, &$purchaseDate)
     {
         if (empty($row[5])) return null;
         
@@ -452,7 +459,7 @@ class PurchaseController extends Controller
         );
     }
 
-    private function parseStandardRow($row, &$supplierName, &$invoiceNumber, &$purchaseDate)
+    private function parseDrRow($row, &$supplierName, &$invoiceNumber, &$purchaseDate)
     {
         if (empty($row[6]) || empty($row[1])) return null;
         
