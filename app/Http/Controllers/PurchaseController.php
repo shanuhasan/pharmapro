@@ -328,6 +328,7 @@ class PurchaseController extends Controller
             $overrideInvoiceNumber = null;
             
             $isAwacsFormat = false;
+            $isNeelkanthPharmaFormat = false;
             if (isset($rows[0][0]) && trim($rows[0][0]) === 'TypeofRecord') {
                 $isAwacsFormat = true;
 
@@ -335,6 +336,8 @@ class PurchaseController extends Controller
                 if (preg_match('/_([A-Z0-9]+)_with_header\.csv$/i', $fileName, $matches)) {
                     $overrideInvoiceNumber = $matches[1];
                 }
+            } elseif (isset($rows[0][0]) && trim($rows[0][0]) === 'Product Code' && isset($rows[0][1]) && trim($rows[0][1]) === 'Product Name') {
+                $isNeelkanthPharmaFormat = true;
             }
 
             $extraCharges = 0;
@@ -345,6 +348,8 @@ class PurchaseController extends Controller
                 $parsedData = null;
                 if ($isAwacsFormat) {
                     $parsedData = $this->parseAwacsRow($row, $supplierName, $invoiceNumber, $purchaseDate);
+                } elseif ($isNeelkanthPharmaFormat) {
+                    $parsedData = $this->parseNeelkanthPharmaRow($row, $supplierName, $invoiceNumber, $purchaseDate);
                 } else {
                     $parsedData = $this->parseStandardRow($row, $supplierName, $invoiceNumber, $purchaseDate);
                 }
@@ -501,6 +506,73 @@ class PurchaseController extends Controller
                 $formattedExpiry = \Carbon\Carbon::createFromFormat('m/y', $expiryStr)->endOfMonth()->format('Y-m-d');
             } catch (\Exception $e) {
                 $formattedExpiry = null;
+            }
+        }
+
+        return compact(
+            'medicineName', 'packStr', 'batchStr', 'formattedExpiry', 'qtyStr', 'fqtyStr', 
+            'srateStr', 'mrpStr', 'disStr', 'halfpStr', 'cgstStr', 'sgstStr', 'igstStr', 'hsnStr', 'medicinesPerStrip', 'isExtraCharge', 'taxableAmtStr'
+        );
+    }
+
+    private function parseNeelkanthPharmaRow($row, &$supplierName, &$invoiceNumber, &$purchaseDate)
+    {
+        if (empty($row[1])) return null; // No Product Name
+        
+        if (!$invoiceNumber) {
+            $supplierName = $row[18] ?? null; // S Man Name
+            $invoiceNumber = $row[24] ?? null; // Bill No
+            
+            $rawDate = $row[23] ?? null; // Bill Date
+            if ($rawDate) {
+                try {
+                    $purchaseDate = \Carbon\Carbon::createFromFormat('d/m/Y', $rawDate)->format('Y-m-d');
+                } catch (\Exception $e) {
+                    try {
+                        $purchaseDate = \Carbon\Carbon::parse(str_replace('/', '-', $rawDate))->format('Y-m-d');
+                    } catch (\Exception $e) {
+                        $purchaseDate = null;
+                    }
+                }
+            }
+        }
+
+        $medicineName = $row[1];
+        $isExtraCharge = false;
+        $packStr = $row[2] ?? ''; // Packing
+        $batchStr = $row[13] ?? null; // Batchdesc
+        $expiryStr = $row[14] ?? null; // Expiry Date (dd/mm/yyyy)
+        $qtyStr = $row[4] ?? 0; // Qty
+        $fqtyStr = $row[5] ?? 0; // Free Qty
+        $srateStr = $row[8] ?? 0; // Rate
+        $mrpStr = $row[10] ?? 0; // MRP
+        $disStr = $row[6] ?? 0; // Disc%
+        $taxableAmtStr = 0;
+        $halfpStr = 0;
+        $cgstStr = $row[27] ?? 0;
+        $sgstStr = $row[26] ?? 0;
+        $igstStr = $row[28] ?? 0;
+        $hsnStr = $row[30] ?? null;
+        
+        $medicinesPerStrip = 1;
+        if (is_numeric($packStr) && $packStr > 0) {
+            $medicinesPerStrip = (int)$packStr;
+        }
+        
+        $formattedExpiry = null;
+        if ($expiryStr) {
+            try {
+                if (strlen(trim($expiryStr)) >= 8) {
+                    $formattedExpiry = \Carbon\Carbon::createFromFormat('d/m/Y', trim($expiryStr))->endOfMonth()->format('Y-m-d');
+                } else {
+                     $formattedExpiry = \Carbon\Carbon::createFromFormat('m/y', trim($expiryStr))->endOfMonth()->format('Y-m-d');
+                }
+            } catch (\Exception $e) {
+                try {
+                    $formattedExpiry = \Carbon\Carbon::parse(str_replace('/', '-', trim($expiryStr)))->endOfMonth()->format('Y-m-d');
+                } catch (\Exception $e2) {
+                    $formattedExpiry = null;
+                }
             }
         }
 
