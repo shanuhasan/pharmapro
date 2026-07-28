@@ -32,8 +32,11 @@ class SaleInvoiceMail extends Mailable
      */
     public function envelope(): Envelope
     {
+        $pharmacyName = setting('pharmacy_name', config('app.name'));
+        
         return new Envelope(
-            subject: 'Invoice ' . $this->sale->invoice_number . ' from ' . config('app.name'),
+            from: new \Illuminate\Mail\Mailables\Address(config('mail.from.address'), $pharmacyName),
+            subject: 'Invoice ' . $this->sale->invoice_number . ' from ' . $pharmacyName,
         );
     }
 
