@@ -1,5 +1,6 @@
 import defaultTheme from 'tailwindcss/defaultTheme';
 import forms from '@tailwindcss/forms';
+import colors from 'tailwindcss/colors';
 
 /** @type {import('tailwindcss').Config} */
 export default {
@@ -15,11 +16,13 @@ export default {
                 sans: ['Figtree', ...defaultTheme.fontFamily.sans],
             },
             colors: {
+                primary: colors.teal,
+                secondary: colors.emerald,
                 medical: {
-                    primary: '#007bff', // Blue
-                    success: '#28a745', // Green
-                    dark: '#343a40',    // AdminLTE Dark Sidebar
-                    darker: '#23272b',  // Sidebar Header
+                    primary: colors.teal[600], // Teal
+                    success: colors.emerald[500], // Emerald
+                    dark: colors.slate[800],    // Deep Slate
+                    darker: colors.slate[900],  // Darker Slate
                 }
             }
         },
