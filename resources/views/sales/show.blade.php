@@ -141,7 +141,7 @@
                 </div>
 
                 <div class="text-center text-gray-500 text-sm mt-12 border-t pt-8">
-                    <p class="font-bold text-gray-600 mb-1">Thank you for your business!</p>
+                    <p class="font-bold text-gray-600 mb-1">{{ setting('receipt_footer_message', 'Thank you for your business!') }}</p>
                     <!-- <p>Medicines once sold cannot be returned or exchanged without a valid receipt.</p> -->
                 </div>
 
