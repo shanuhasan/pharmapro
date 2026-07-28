@@ -31,15 +31,17 @@ class DashboardController extends Controller
         $todayPurchasesAmount = $purchaseQuery->sum('total_amount');
 
         // 3. Low Stock Alerts
-        $threshold = (int) setting('low_stock_threshold', 10);
+        $lowqty = 10;
+        $threshold = (int) setting('low_stock_threshold', $lowqty);
         $lowStockQuery = Stock::where('quantity', '<', $threshold)->where('quantity', '>', 0);
         if ($branchId) $lowStockQuery->where('branch_id', $branchId);
         $lowStockCount = $lowStockQuery->count();
 
         // 4. Expiring Soon Count
-        $thirtyDaysFromNow = Carbon::today()->addDays(30);
+        $days = 90;
+        $nintyDaysFromNow = Carbon::today()->addDays($days);
         $expiringQuery = Stock::where('quantity', '>', 0)
-                              ->where('expiry_date', '<=', $thirtyDaysFromNow)
+                              ->where('expiry_date', '<=', $nintyDaysFromNow)
                               ->where('expiry_date', '>=', $today);
         if ($branchId) $expiringQuery->where('branch_id', $branchId);
         $expiringSoonCount = $expiringQuery->count();
@@ -68,7 +70,9 @@ class DashboardController extends Controller
             'lowStockCount', 
             'expiringSoonCount',
             'chartLabels',
-            'chartData'
+            'chartData',
+            'days',
+            'lowqty',
         ));
     }
 }

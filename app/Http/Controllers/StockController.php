@@ -37,7 +37,7 @@ class StockController extends Controller
                     }
                     if (\Carbon\Carbon::parse($row->expiry_date)->isPast()) {
                         $badges .= '<span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-800 text-white mr-1">Expired</span>';
-                    } elseif (\Carbon\Carbon::parse($row->expiry_date)->diffInDays(now()) <= 30) {
+                    } elseif (\Carbon\Carbon::parse($row->expiry_date)->diffInDays(now()) <= 90) {
                         $badges .= '<span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-orange-100 text-orange-800 mr-1">Expiring Soon</span>';
                     }
                     return $badges ?: '<span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">OK</span>';

@@ -47,7 +47,7 @@
                         <div class="ml-4">
                             <p class="text-sm text-gray-500 font-semibold uppercase">Low Stock Alerts</p>
                             <h3 class="text-2xl font-bold text-red-600">{{ $lowStockCount }}</h3>
-                            <p class="text-xs text-gray-400 mt-1">Items below 10 qty</p>
+                            <p class="text-xs text-gray-400 mt-1">Items below {{$lowqty}} qty</p>
                         </div>
                     </div>
                 </div>
@@ -61,7 +61,7 @@
                         <div class="ml-4">
                             <p class="text-sm text-gray-500 font-semibold uppercase">Expiring Soon</p>
                             <h3 class="text-2xl font-bold text-orange-600">{{ $expiringSoonCount }}</h3>
-                            <p class="text-xs text-gray-400 mt-1">Within next 30 days</p>
+                            <p class="text-xs text-gray-400 mt-1">Within next {{$days}} days</p>
                         </div>
                     </div>
                 </div>
