@@ -93,10 +93,13 @@
             @include('layouts.sidebar')
 
             <!-- Main Content -->
-            <div class="relative flex flex-col flex-1 overflow-y-auto overflow-x-hidden">
+            <div class="relative flex flex-col flex-1 overflow-hidden">
                 
-                <!-- Top Header -->
-                <header class="sticky top-0 z-30 flex items-center justify-between px-6 py-4 bg-white shadow-md">
+                <!-- Scrollable Area -->
+                <div class="flex flex-col flex-1 overflow-y-auto overflow-x-hidden">
+                
+                    <!-- Top Header -->
+                    <header class="sticky top-0 z-30 flex items-center justify-between px-6 py-4 bg-white shadow-md">
                     <div class="flex items-center">
                         <button @click="sidebarOpen = !sidebarOpen" class="text-gray-500 focus:outline-none lg:hidden">
                             <i class="fas fa-bars text-xl"></i>
@@ -169,9 +172,29 @@
                 @endif
 
                 <!-- Main Content Body -->
-                <main class="p-6">
+                <main class="p-6 flex-grow">
                     {{ $slot }}
                 </main>
+                
+                </div> <!-- End Scrollable Area -->
+
+                <!-- Footer -->
+                <footer class="bg-white border-t border-gray-200 w-full shrink-0 z-20">
+                    <div class="w-full py-4 px-6">
+                        <div class="md:flex md:items-center md:justify-between">
+                            <div class="flex justify-center md:order-2 space-x-6 text-sm text-gray-500 transition-colors">
+                                <!-- <a href="#" class="hover:text-gray-900 hover:underline">Support</a> -->
+                                <!-- <a href="#" class="hover:text-gray-900 hover:underline">Privacy Policy</a> -->
+                                <!-- <a href="#" class="hover:text-gray-900 hover:underline">Terms of Service</a> -->
+                            </div>
+                            <div class="mt-4 md:mt-0 md:order-1">
+                                <p class="text-center md:text-left text-sm text-gray-500">
+                                    &copy; {{ date('Y') }} All rights reserved | Developed by  <a href="https://musheeda.com/" class="hover:text-gray-900 hover:underline">Musheeda</a>
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </footer>
             </div>
         </div>
     </body>
