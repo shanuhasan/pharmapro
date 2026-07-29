@@ -87,28 +87,17 @@
             <div class="absolute bottom-1/3 right-[10%] text-teal-300 opacity-30 text-5xl anim-float-1 pointer-events-none hidden md:block"><i class="fas fa-prescription-bottle-alt"></i></div>
 
             <div class="relative max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center z-10 py-20 lg:py-32">
-                <div class="inline-flex items-center px-4 py-2 rounded-full bg-slate-800 border border-slate-700 text-teal-300 text-sm font-medium mb-8">
-                    <span class="flex h-2 w-2 rounded-full bg-medical-success mr-2 animate-pulse"></span>
-                    Modern Pharmacy System
-                </div>
-                
-                <h1 class="text-5xl md:text-7xl font-extrabold text-white tracking-tight leading-tight mb-8">
-                    Simplify Your <span class="text-transparent bg-clip-text bg-gradient-to-r from-medical-primary to-emerald-400">Pharmacy</span>
-                </h1>
-                
-                <p class="text-xl md:text-2xl text-slate-400 mb-12 max-w-3xl mx-auto font-light leading-relaxed">
-                    A clean, smart, and secure platform to manage inventory, process sales, and grow your pharmacy business efficiently.
-                </p>
-                
                 <div class="flex justify-center">
                     @if (Route::has('login'))
                         @auth
-                            <a href="{{ url('/dashboard') }}" class="px-8 py-4 text-lg font-bold rounded-full text-white bg-gradient-to-r from-medical-primary to-medical-success hover:scale-105 transform transition-all duration-300 flex items-center justify-center anim-glow shadow-lg shadow-teal-500/30">
-                                Open Dashboard <i class="fas fa-arrow-right ml-3"></i>
+                            <a href="{{ url('/dashboard') }}" class="px-10 py-4 text-lg font-bold rounded-full text-white bg-gradient-to-r from-medical-primary to-medical-success hover:scale-105 transform transition-all duration-300 flex items-center justify-center gap-3 anim-glow shadow-lg shadow-teal-500/30">
+                                <span>Open Dashboard</span>
+                                <i class="fas fa-arrow-right"></i>
                             </a>
                         @else
-                            <a href="{{ route('login') }}" class="px-8 py-4 text-lg font-bold rounded-full text-white bg-gradient-to-r from-medical-primary to-medical-success hover:scale-105 transform transition-all duration-300 flex items-center justify-center anim-glow shadow-lg shadow-teal-500/30">
-                                Secure Login <i class="fas fa-lock ml-3"></i>
+                            <a href="{{ route('login') }}" class="px-10 py-4 text-lg font-bold rounded-full text-white bg-gradient-to-r from-medical-primary to-medical-success hover:scale-105 transform transition-all duration-300 flex items-center justify-center gap-3 anim-glow shadow-lg shadow-teal-500/30">
+                                <span>Secure Login</span>
+                                <i class="fas fa-lock"></i>
                             </a>
                         @endauth
                     @endif
@@ -116,7 +105,7 @@
             </div>
 
             <!-- Simple Features -->
-            <div class="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-24 z-10">
+            <div class="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-16 pb-24 z-10">
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                     <div class="bg-slate-800/50 backdrop-blur-sm border border-slate-700 rounded-2xl p-6 hover:border-medical-primary transition-colors duration-300 text-center group">
                         <div class="w-14 h-14 mx-auto rounded-full bg-slate-700 flex items-center justify-center text-medical-primary text-2xl mb-4 group-hover:scale-110 transition-transform duration-300">
