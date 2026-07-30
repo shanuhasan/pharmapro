@@ -21,10 +21,21 @@
     <nav class="mt-5 px-2">
         <p class="px-4 text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Main Menu</p>
         
-        <a href="{{ route('dashboard') }}" class="mt-1 group flex items-center px-4 py-2 text-sm font-medium rounded-md {{ request()->routeIs('dashboard') ? 'bg-medical-primary text-white' : 'text-gray-300 hover:bg-gray-700 hover:text-white' }}">
-            <i class="fas fa-tachometer-alt mr-3 text-lg {{ request()->routeIs('dashboard') ? 'text-white' : 'text-gray-400 group-hover:text-gray-300' }}"></i>
+        @php
+            $dashboardRoute = auth()->user()->role === 'super_admin' ? route('super_admin.dashboard') : route('dashboard');
+            $isDashboardRoute = auth()->user()->role === 'super_admin' ? request()->routeIs('super_admin.dashboard') : request()->routeIs('dashboard');
+        @endphp
+        <a href="{{ $dashboardRoute }}" class="mt-1 group flex items-center px-4 py-2 text-sm font-medium rounded-md {{ $isDashboardRoute ? 'bg-medical-primary text-white' : 'text-gray-300 hover:bg-gray-700 hover:text-white' }}">
+            <i class="fas fa-tachometer-alt mr-3 text-lg {{ $isDashboardRoute ? 'text-white' : 'text-gray-400 group-hover:text-gray-300' }}"></i>
             Dashboard
         </a>
+
+        @if(auth()->user()->role === 'super_admin')
+        <a href="{{ route('super_admin.pharmacies') }}" class="mt-1 group flex items-center px-4 py-2 text-sm font-medium rounded-md {{ request()->routeIs('super_admin.pharmacies*') ? 'bg-medical-primary text-white' : 'text-gray-300 hover:bg-gray-700 hover:text-white' }}">
+            <i class="fas fa-clinic-medical mr-3 text-lg {{ request()->routeIs('super_admin.pharmacies*') ? 'text-white' : 'text-gray-400 group-hover:text-gray-300' }}"></i>
+            Pharmacies
+        </a>
+        @else
 
         @if(auth()->user()->role === 'admin')
         <a href="{{ route('branches.index') }}" class="mt-1 group flex items-center px-4 py-2 text-sm font-medium rounded-md {{ request()->routeIs('branches.*') ? 'bg-medical-primary text-white' : 'text-gray-300 hover:bg-gray-700 hover:text-white' }}">
@@ -144,6 +155,7 @@
             <i class="fas fa-users mr-3 text-lg {{ request()->routeIs('users.*') ? 'text-gray-300' : 'text-gray-400 group-hover:text-gray-300' }}"></i>
             User Management
         </a>
+        @endif
         @endif
     </nav>
 </div>
