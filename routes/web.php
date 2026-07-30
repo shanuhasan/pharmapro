@@ -16,6 +16,7 @@ Route::middleware(['auth', 'super_admin'])->prefix('super-admin')->name('super_a
     Route::get('/pharmacies', [\App\Http\Controllers\SuperAdminController::class, 'pharmacies'])->name('pharmacies');
     Route::get('/pharmacies/create', [\App\Http\Controllers\SuperAdminController::class, 'createPharmacy'])->name('pharmacies.create');
     Route::post('/pharmacies', [\App\Http\Controllers\SuperAdminController::class, 'storePharmacy'])->name('pharmacies.store');
+    Route::post('/pharmacies/{pharmacy}/toggle-status', [\App\Http\Controllers\SuperAdminController::class, 'toggleStatus'])->name('pharmacies.toggleStatus');
 });
 
 Route::middleware('auth')->group(function () {

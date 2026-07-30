@@ -61,4 +61,12 @@ class SuperAdminController extends Controller
 
         return redirect()->route('super_admin.pharmacies')->with('success', 'Pharmacy and Admin User created successfully.');
     }
+
+    public function toggleStatus(Pharmacy $pharmacy)
+    {
+        $pharmacy->is_active = !$pharmacy->is_active;
+        $pharmacy->save();
+
+        return redirect()->back()->with('success', 'Pharmacy status updated successfully.');
+    }
 }

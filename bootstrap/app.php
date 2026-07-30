@@ -15,6 +15,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'role' => \App\Http\Middleware\CheckRole::class,
             'super_admin' => \App\Http\Middleware\SuperAdminMiddleware::class,
         ]);
+        $middleware->appendToGroup('web', \App\Http\Middleware\CheckPharmacyStatus::class);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         //
