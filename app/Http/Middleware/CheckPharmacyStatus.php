@@ -17,12 +17,22 @@ class CheckPharmacyStatus
     {
         if (\Illuminate\Support\Facades\Auth::check() && \Illuminate\Support\Facades\Auth::user()->role !== 'super_admin') {
             $pharmacy = \Illuminate\Support\Facades\Auth::user()->pharmacy;
-            if ($pharmacy && !$pharmacy->is_active) {
-                \Illuminate\Support\Facades\Auth::logout();
-                $request->session()->invalidate();
-                $request->session()->regenerateToken();
+            if ($pharmacy) {
+                if (!$pharmacy->is_active) {
+                    \Illuminate\Support\Facades\Auth::logout();
+                    $request->session()->invalidate();
+                    $request->session()->regenerateToken();
 
-                return redirect()->route('login')->withErrors(['email' => 'Amount pending. Please contact Super Admin.']);
+                    return redirect()->route('login')->withErrors(['email' => 'Amount pending. Please contact Super Admin.']);
+                }
+
+                if ($pharmacy->created_at && $pharmacy->created_at->copy()->addYear()->isPast()) {
+                    \Illuminate\Support\Facades\Auth::logout();
+                    $request->session()->invalidate();
+                    $request->session()->regenerateToken();
+
+                    return redirect()->route('login')->withErrors(['email' => 'Membership Expired. Please contact Super Admin.']);
+                }
             }
         }
 

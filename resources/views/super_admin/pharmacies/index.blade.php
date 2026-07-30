@@ -26,6 +26,7 @@
                                 <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
                                 <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Phone</th>
                                 <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Created At</th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Expires In</th>
                                 <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
                                 <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Action</th>
                             </tr>
@@ -38,6 +39,23 @@
                                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ $pharmacy->email }}</td>
                                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ $pharmacy->phone ?? '-' }}</td>
                                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ $pharmacy->created_at ? $pharmacy->created_at->format('Y-m-d') : '-' }}</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm">
+                                        @if($pharmacy->created_at)
+                                            @php
+                                                $expiresAt = $pharmacy->created_at->copy()->addYear();
+                                                $days = (int) now()->diffInDays($expiresAt, false);
+                                            @endphp
+                                            @if($days < 0)
+                                                <span class="text-red-600 font-bold">Expired</span>
+                                            @elseif($days <= 30)
+                                                <span class="text-orange-600 font-bold">{{ $days }} days</span>
+                                            @else
+                                                <span class="text-green-600 font-semibold">{{ $days }} days</span>
+                                            @endif
+                                        @else
+                                            -
+                                        @endif
+                                    </td>
                                     <td class="px-6 py-4 whitespace-nowrap">
                                         @if($pharmacy->is_active)
                                             <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">Active</span>
@@ -56,7 +74,7 @@
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="7" class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-center">No pharmacies found.</td>
+                                    <td colspan="8" class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-center">No pharmacies found.</td>
                                 </tr>
                             @endforelse
                         </tbody>
