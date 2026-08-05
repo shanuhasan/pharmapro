@@ -554,7 +554,13 @@ class PurchaseController extends Controller
         $srateStr = $row[8] ?? 0; // Rate
         $mrpStr = $row[10] ?? 0; // MRP
         $disStr = $row[6] ?? 0; // Disc%
-        $taxableAmtStr = 0;
+        if (empty($disStr) || $disStr == 0) {
+            $disStr = $row[21] ?? 0; // Overall Discount%
+        }
+        if (empty($disStr) || $disStr == 0) {
+            $disStr = $row[19] ?? 0; // Overall Discount
+        }
+        $taxableAmtStr = $row[17] ?? 0;
         $halfpStr = 0;
         $cgstStr = $row[27] ?? 0;
         $sgstStr = $row[26] ?? 0;
