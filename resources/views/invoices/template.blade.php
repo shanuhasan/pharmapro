@@ -71,12 +71,12 @@
                     <div class="title">GST INVOICE</div>
                 </td>
                 <td class="header-right">
-                    <strong>Patient Name :</strong> {{ strtoupper($sale->customer->name ?? $sale->customer_name ?? 'CASH') }}<br>
-                    @if($sale->customer || $sale->customer_phone)
-                    <strong>Patient Phone :</strong> {{ $sale->customer->phone ?? $sale->customer_phone }}<br>
+                    <strong>Patient Name :</strong> {{ strtoupper($sale->customer_name ?: ($sale->customer->name ?? 'CASH')) }}<br>
+                    @if($sale->customer_phone || ($sale->customer && $sale->customer->phone))
+                    <strong>Patient Phone :</strong> {{ $sale->customer_phone ?: $sale->customer->phone }}<br>
                     @endif
-                    @if($sale->customer || $sale->customer_address)
-                    <strong>Patient Address :</strong> {{ $sale->customer->address ?? $sale->customer_address }}<br>
+                    @if($sale->customer_address || ($sale->customer && $sale->customer->address))
+                    <strong>Patient Address :</strong> {{ $sale->customer_address ?: $sale->customer->address }}<br>
                     @endif
                     <strong>Dr Name :</strong> {{ strtoupper($sale->doctor_name ?? 'SELF') }}<br>
                     <div style="margin-top: 5px;"><strong>Invoice No. :</strong> {{ $sale->invoice_number }}</div>

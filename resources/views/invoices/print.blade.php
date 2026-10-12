@@ -65,12 +65,16 @@
 </head>
 <body class="bg-gray-100 py-10 print:py-0">
 
-    <div class="max-w-4xl mx-auto mb-4 no-print flex justify-end space-x-4">
-        <button onclick="window.print()" class="bg-blue-600 text-white px-4 py-2 rounded shadow font-bold">
+    <div class="max-w-4xl mx-auto mb-4 no-print flex justify-end space-x-3">
+        <button type="button" onclick="openPrintEditModal()" class="bg-amber-600 hover:bg-amber-700 text-white px-4 py-2 rounded shadow font-bold">
+            <svg class="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
+            Edit Patient
+        </button>
+        <button onclick="window.print()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded shadow font-bold">
             <svg class="w-4 h-4 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path></svg>
             Print Invoice
         </button>
-        <button onclick="window.close()" class="bg-gray-600 text-white px-4 py-2 rounded shadow font-bold">Close</button>
+        <button onclick="window.close()" class="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded shadow font-bold">Close</button>
     </div>
 
     <div class="invoice-box bg-white">
@@ -93,14 +97,14 @@
             
             <!-- Right Info -->
             <div class="w-4/12 p-2 text-sm leading-tight">
-                <div class="font-bold">Patient Name : {{ strtoupper($sale->customer->name ?? $sale->customer_name ?? '') }}</div>
-                @if($sale->customer || $sale->customer_phone)
-                <div>Patient Phone : {{ $sale->customer->phone ?? $sale->customer_phone }}</div>
+                <div class="font-bold" id="print_patient_name_display">Patient Name : {{ strtoupper($sale->customer_name ?: ($sale->customer->name ?? '')) }}</div>
+                @if($sale->customer_phone || ($sale->customer && $sale->customer->phone))
+                <div id="print_patient_phone_display">Patient Phone : {{ $sale->customer_phone ?: $sale->customer->phone }}</div>
                 @endif
-                @if($sale->customer || $sale->customer_address)
-                <div>Patient Address : {{ $sale->customer->address ?? $sale->customer_address }}</div>
+                @if($sale->customer_address || ($sale->customer && $sale->customer->address))
+                <div id="print_patient_address_display">Patient Address : {{ $sale->customer_address ?: $sale->customer->address }}</div>
                 @endif
-                <div>Dr Name : {{ strtoupper($sale->doctor_name ?? 'SELF') }}</div>
+                <div id="print_doctor_name_display">Dr Name : {{ strtoupper($sale->doctor_name ?? 'SELF') }}</div>
                 <div class="mt-2">Invoice No. : {{ $sale->invoice_number }}</div>
                 <div>Date : {{ \Carbon\Carbon::parse($sale->sale_date)->format('d-m-Y') }}</div>
             </div>
@@ -231,9 +235,119 @@
 
     </div>
 
+    <!-- Edit Patient Modal (no-print) -->
+    <div id="printEditModal" class="fixed inset-0 z-50 overflow-y-auto hidden no-print" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+        <div class="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
+            <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" onclick="closePrintEditModal()"></div>
+            <span class="hidden sm:inline-block sm:align-middle sm:h-screen">&#8203;</span>
+            <div class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-md sm:w-full">
+                <form id="printEditForm" onsubmit="savePrintPatientDetails(event)">
+                    <div class="bg-white px-6 pt-5 pb-4">
+                        <div class="flex justify-between items-center border-b pb-3 mb-4">
+                            <h3 class="text-lg font-bold text-gray-900">Edit Invoice Patient Details</h3>
+                            <button type="button" onclick="closePrintEditModal()" class="text-gray-400 hover:text-gray-600 text-xl font-bold">&times;</button>
+                        </div>
+
+                        <div id="print_modal_error" class="hidden mb-3 p-2 bg-red-100 text-red-700 text-xs rounded"></div>
+
+                        <div class="mb-3">
+                            <label class="block text-xs font-bold text-gray-700 mb-1">Patient Name <span class="text-red-500">*</span></label>
+                            <input type="text" id="p_modal_patient_name" required 
+                                value="{{ $sale->customer_name ?: ($sale->customer->name ?? '') }}" 
+                                class="w-full text-sm p-2 border border-gray-300 rounded focus:ring-blue-500 focus:border-blue-500">
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="block text-xs font-semibold text-gray-700 mb-1">Patient Phone</label>
+                            <input type="text" id="p_modal_patient_phone" 
+                                value="{{ $sale->customer_phone ?: ($sale->customer->phone ?? '') }}" 
+                                class="w-full text-sm p-2 border border-gray-300 rounded">
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="block text-xs font-semibold text-gray-700 mb-1">Patient Address</label>
+                            <textarea id="p_modal_patient_address" rows="2" 
+                                class="w-full text-sm p-2 border border-gray-300 rounded">{{ $sale->customer_address ?: ($sale->customer->address ?? '') }}</textarea>
+                        </div>
+
+                        <div class="mb-2">
+                            <label class="block text-xs font-semibold text-gray-700 mb-1">Doctor Name</label>
+                            <input type="text" id="p_modal_doctor_name" 
+                                value="{{ $sale->doctor_name ?? '' }}" 
+                                placeholder="e.g. Dr. Sharma (Default: SELF)" 
+                                class="w-full text-sm p-2 border border-gray-300 rounded">
+                        </div>
+                    </div>
+
+                    <div class="bg-gray-50 px-6 py-3 flex justify-end space-x-2 border-t">
+                        <button type="button" onclick="closePrintEditModal()" class="px-4 py-2 bg-white border border-gray-300 rounded text-sm text-gray-700 hover:bg-gray-50 font-medium">Cancel</button>
+                        <button type="submit" id="p_modal_save_btn" class="px-4 py-2 bg-blue-600 text-white rounded text-sm font-bold hover:bg-blue-700">Save & Update</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
     <script>
+        function openPrintEditModal() {
+            document.getElementById('print_modal_error').classList.add('hidden');
+            document.getElementById('printEditModal').classList.remove('hidden');
+            document.getElementById('p_modal_patient_name').focus();
+        }
+
+        function closePrintEditModal() {
+            document.getElementById('printEditModal').classList.add('hidden');
+        }
+
+        function savePrintPatientDetails(e) {
+            e.preventDefault();
+            const btn = document.getElementById('p_modal_save_btn');
+            btn.disabled = true;
+            btn.textContent = 'Saving...';
+
+            const payload = {
+                _token: '{{ csrf_token() }}',
+                _method: 'PUT',
+                patient_name: document.getElementById('p_modal_patient_name').value,
+                patient_phone: document.getElementById('p_modal_patient_phone').value,
+                patient_address: document.getElementById('p_modal_patient_address').value,
+                doctor_name: document.getElementById('p_modal_doctor_name').value
+            };
+
+            fetch('{{ route('sales.update', $sale->id) }}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                },
+                body: JSON.stringify(payload)
+            })
+            .then(res => res.json())
+            .then(data => {
+                btn.disabled = false;
+                btn.textContent = 'Save & Update';
+                if(data.success) {
+                    window.location.reload();
+                } else {
+                    document.getElementById('print_modal_error').textContent = data.message || 'Failed to update';
+                    document.getElementById('print_modal_error').classList.remove('hidden');
+                }
+            })
+            .catch(err => {
+                btn.disabled = false;
+                btn.textContent = 'Save & Update';
+                document.getElementById('print_modal_error').textContent = 'Network or server error.';
+                document.getElementById('print_modal_error').classList.remove('hidden');
+            });
+        }
+
         window.onload = function() {
-            window.print();
+            // Only auto-print if modal is not open
+            if(window.location.search.indexOf('no_autoprint') === -1) {
+                // Auto print
+                window.print();
+            }
         }
     </script>
 </body>

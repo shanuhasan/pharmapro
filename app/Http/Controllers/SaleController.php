@@ -22,10 +22,9 @@ class SaleController extends Controller
                     return $row->branch ? $row->branch->name : 'N/A';
                 })
                 ->addColumn('customer', function($row){
-                    if ($row->customer) {
-                        return $row->customer->name;
-                    } elseif ($row->customer_name) {
-                        return $row->customer_name . ' (Walk-in)';
+                    $name = $row->customer_name ?: ($row->customer ? $row->customer->name : null);
+                    if ($name) {
+                        return $row->customer ? $name : $name . ' (Walk-in)';
                     }
                     return 'Walk-in Customer';
                 })
@@ -38,8 +37,24 @@ class SaleController extends Controller
                 ->addColumn('action', function($row){
                        $showUrl = route('sales.show', $row->id);
                        $printUrl = route('invoice.print', $row->id);
-                       $btn = '<a href="'.$showUrl.'" class="text-indigo-600 hover:text-indigo-900 mr-3"><i class="fas fa-eye"></i> View</a>';
-                       $btn .= '<a href="'.$printUrl.'" target="_blank" class="text-green-600 hover:text-green-900"><i class="fas fa-print"></i> Print</a>';
+                       $currentName = $row->customer_name ?: ($row->customer ? $row->customer->name : '');
+                       $currentPhone = $row->customer_phone ?: ($row->customer ? $row->customer->phone : '');
+                       $currentAddress = $row->customer_address ?: ($row->customer ? $row->customer->address : '');
+                       $currentDoctor = $row->doctor_name ?? '';
+                       $currentDoctorAddress = $row->doctor_address ?? '';
+
+                       $btn = '<a href="'.$showUrl.'" class="text-indigo-600 hover:text-indigo-900 mr-3" title="View"><i class="fas fa-eye"></i> View</a>';
+                       $btn .= '<button type="button" class="text-blue-600 hover:text-blue-900 mr-3 edit-patient-btn" '
+                           . 'data-id="'.$row->id.'" '
+                           . 'data-invoice="'.e($row->invoice_number).'" '
+                           . 'data-name="'.e($currentName).'" '
+                           . 'data-phone="'.e($currentPhone).'" '
+                           . 'data-address="'.e($currentAddress).'" '
+                           . 'data-doctor="'.e($currentDoctor).'" '
+                           . 'data-doctor-address="'.e($currentDoctorAddress).'" '
+                           . 'data-customer-id="'.($row->customer_id ?? '').'" '
+                           . 'title="Edit Patient"><i class="fas fa-user-edit"></i> Edit Patient</button>';
+                       $btn .= '<a href="'.$printUrl.'" target="_blank" class="text-green-600 hover:text-green-900" title="Print"><i class="fas fa-print"></i> Print</a>';
                        return $btn;
                 })
                 ->rawColumns(['action'])
@@ -170,5 +185,60 @@ class SaleController extends Controller
     {
         $sale->load(['saleItems.medicine', 'customer', 'branch']);
         return view('sales.show', compact('sale'));
+    }
+
+    public function edit(Sale $sale)
+    {
+        $sale->load(['customer', 'branch', 'saleItems.medicine']);
+        return view('sales.edit', compact('sale'));
+    }
+
+    public function update(Request $request, Sale $sale)
+    {
+        $request->validate([
+            'customer_id' => 'nullable|exists:customers,id',
+            'customer_name' => 'nullable|string|max:255',
+            'patient_name' => 'nullable|string|max:255',
+            'customer_phone' => 'nullable|string|max:50',
+            'patient_phone' => 'nullable|string|max:50',
+            'customer_address' => 'nullable|string|max:1000',
+            'patient_address' => 'nullable|string|max:1000',
+            'doctor_name' => 'nullable|string|max:255',
+            'doctor_address' => 'nullable|string|max:1000',
+        ]);
+
+        $patientName = $request->input('patient_name', $request->input('customer_name'));
+        $patientPhone = $request->input('patient_phone', $request->input('customer_phone'));
+        $patientAddress = $request->input('patient_address', $request->input('customer_address'));
+        $customerId = $request->filled('customer_id') ? $request->customer_id : null;
+
+        // If a customer_id is supplied and name is blank, default to that customer's details
+        if ($customerId && empty($patientName)) {
+            $customer = \App\Models\Customer::find($customerId);
+            if ($customer) {
+                $patientName = $customer->name;
+                if (empty($patientPhone)) $patientPhone = $customer->phone;
+                if (empty($patientAddress)) $patientAddress = $customer->address;
+            }
+        }
+
+        $sale->update([
+            'customer_id' => $customerId,
+            'customer_name' => $patientName,
+            'customer_phone' => $patientPhone,
+            'customer_address' => $patientAddress,
+            'doctor_name' => $request->doctor_name,
+            'doctor_address' => $request->doctor_address,
+        ]);
+
+        if ($request->ajax() || $request->wantsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Invoice patient details updated successfully.',
+                'sale' => $sale->fresh(['customer'])
+            ]);
+        }
+
+        return redirect()->route('sales.show', $sale)->with('success', 'Invoice patient details updated successfully.');
     }
 }

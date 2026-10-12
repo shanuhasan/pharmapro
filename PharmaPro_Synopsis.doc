@@ -1,0 +1,104 @@
+<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40">
+<head>
+    <meta charset="utf-8">
+    <title>Project Synopsis - PharmaPro</title>
+    <style>
+        body {
+            font-family: 'Times New Roman', Times, serif;
+            font-size: 12pt;
+            line-height: 1.5;
+            margin: 1in;
+        }
+        h1, h2, h3 {
+            color: #2F5496;
+        }
+        h1 {
+            text-align: center;
+            font-size: 20pt;
+            text-transform: uppercase;
+            margin-bottom: 30px;
+        }
+        h2 {
+            font-size: 14pt;
+            margin-top: 20px;
+            border-bottom: 1px solid #000;
+            padding-bottom: 5px;
+        }
+        ul {
+            margin-top: 5px;
+            margin-bottom: 15px;
+        }
+        li {
+            margin-bottom: 5px;
+        }
+        p {
+            text-align: justify;
+            margin-bottom: 15px;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>PROJECT SYNOPSIS</h1>
+    <h2 style="text-align: center; border: none;">Project Title: PharmaPro - Pharmacy Management System</h2>
+
+    <h2>1. Introduction</h2>
+    <p>PharmaPro is a comprehensive, web-based Pharmacy Management System designed to streamline the operations of single or multi-branch pharmacies. It automates day-to-day administrative tasks, point-of-sale (POS) operations, inventory tracking, and reporting, ensuring accuracy and efficiency in pharmaceutical management. The system transitions conventional pharmacy management into a digital and systematic approach.</p>
+
+    <h2>2. Objectives of the Project</h2>
+    <ul>
+        <li>To digitalize pharmacy records and eliminate manual paper-based processes.</li>
+        <li>To provide an intuitive Point of Sale (POS) interface for faster billing and transactions.</li>
+        <li>To manage stock effectively, providing alerts for low stock and expiring medicines.</li>
+        <li>To facilitate multi-branch management and centralized reporting for administrators.</li>
+        <li>To track daily expenses and calculate accurate profit and loss statements.</li>
+    </ul>
+
+    <h2>3. Key Features & Modules</h2>
+    <ul>
+        <li><strong>Dashboard & Analytics:</strong> A centralized view of sales, purchases, revenue, and critical stock metrics.</li>
+        <li><strong>Inventory & Stock Management:</strong> Track medicine stock quantities, batch numbers, expiry dates, and medicine categories.</li>
+        <li><strong>Point of Sale (POS):</strong> A streamlined, fast-paced interface for quick sales, barcode scanning, and invoice generation.</li>
+        <li><strong>Purchase & Supplier Management:</strong> Manage supplier details, track purchase orders, and handle purchase returns.</li>
+        <li><strong>Sales & Customer Management:</strong> Keep track of customer history, sales records, and sale returns.</li>
+        <li><strong>Multi-Branch Support:</strong> Ability to manage multiple pharmacy branches with proper data segregation.</li>
+        <li><strong>Role-Based Access Control (RBAC):</strong> Dynamic roles and permissions for Super Admins, Branch Managers, Pharmacists, and Cashiers.</li>
+        <li><strong>Expense Tracking:</strong> Record and monitor daily pharmacy expenses efficiently.</li>
+        <li><strong>Comprehensive Reporting:</strong> Generate downloadable PDF and Excel reports for sales, purchases, stock levels, and financials.</li>
+    </ul>
+
+    <h2>4. Technology Stack</h2>
+    <ul>
+        <li><strong>Frontend:</strong> HTML5, CSS3, Tailwind CSS, JavaScript (AJAX/Fetch), DataTables</li>
+        <li><strong>Backend:</strong> PHP 8.2, Laravel 12.0 Framework</li>
+        <li><strong>Database:</strong> MySQL / SQLite</li>
+        <li><strong>Key Libraries:</strong> Laravel Breeze (Auth), Spatie Permissions, Barryvdh DOMPDF, Maatwebsite Excel, Intervention Image</li>
+    </ul>
+
+    <h2>5. Software & Hardware Requirements</h2>
+    <p><strong>Hardware Requirements:</strong></p>
+    <ul>
+        <li>Processor: Intel Core i3 (or equivalent) and above</li>
+        <li>RAM: 4GB Minimum (8GB Recommended)</li>
+        <li>Storage: 50GB Free Space</li>
+    </ul>
+    <p><strong>Software Requirements:</strong></p>
+    <ul>
+        <li>Operating System: Windows / Linux / macOS</li>
+        <li>Local Server Environment: XAMPP, WAMP, or LAMP Stack</li>
+        <li>Web Browser: Google Chrome, Mozilla Firefox, or Microsoft Edge</li>
+    </ul>
+
+    <h2>6. Future Scope</h2>
+    <ul>
+        <li>Integration with third-party payment gateways for online medicine ordering and delivery.</li>
+        <li>AI-based predictive analytics for inventory restocking and demand forecasting.</li>
+        <li>Development of a companion mobile application for customers to upload prescriptions directly.</li>
+        <li>Integration with SMS/Email gateways for customer billing and reminders.</li>
+    </ul>
+
+    <h2>7. Conclusion</h2>
+    <p>PharmaPro offers a robust, scalable, and user-friendly solution to modern pharmacy businesses. By integrating various operational modules into a unified web application, it significantly reduces human error, improves customer service, and empowers pharmacy owners with actionable, data-driven insights. It serves as a complete foundation for digitizing healthcare retail processes.</p>
+
+</body>
+</html>
