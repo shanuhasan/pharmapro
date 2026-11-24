@@ -116,6 +116,8 @@
 .app-theme .app-main table .divide-y > :not([hidden]) ~ :not([hidden]) { border-top-width: 0; }
 
 /* DataTables chrome */
+/* Wide tables scroll horizontally inside their card instead of being clipped */
+.app-theme .app-main .dataTables_wrapper { overflow-x: auto; overflow-y: hidden; padding-bottom: 2px; }
 .app-theme .app-main table.dataTable { margin: .75rem 0 !important; border-bottom: 0 !important; }
 .app-theme .app-main table.dataTable.no-footer { border-bottom: 0 !important; }
 .app-theme .app-main table.dataTable > tbody > tr.odd > *,
@@ -254,6 +256,20 @@
 .app-theme .app-main .text-blue-600 { color: var(--brand-600); }
 .app-theme .app-main .hover\:text-indigo-900:hover,
 .app-theme .app-main .hover\:text-blue-900:hover { color: #134e4a; }
+
+/* Header slot: page title + optional action buttons */
+.app-theme .app-page-title > div { gap: 1rem; }
+.app-theme .app-page-title h2 { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
+.app-theme .app-page-title a,
+.app-theme .app-page-title button { white-space: nowrap; flex-shrink: 0; }
+.app-theme .app-page-title .bg-blue-600,
+.app-theme .app-page-title .bg-indigo-600 {
+    background: linear-gradient(180deg, #14b8a6, #0d9488);
+    box-shadow: 0 1px 0 rgba(255, 255, 255, .25) inset, 0 6px 16px -8px rgba(13, 148, 136, .8);
+    border-radius: 10px;
+}
+.app-theme .app-page-title .hover\:bg-blue-700:hover,
+.app-theme .app-page-title .hover\:bg-indigo-700:hover { filter: brightness(1.06); }
 
 /* Badges rendered from PHP (rounded-full + leading-5) */
 .app-theme .app-main span.rounded-full.leading-5 { padding: .1rem .6rem; font-weight: 600; letter-spacing: .01em; }

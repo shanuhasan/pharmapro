@@ -107,19 +107,19 @@
 
                     <!-- Top Bar -->
                     <header class="sticky top-0 z-30 flex items-center justify-between gap-4 px-4 sm:px-6 lg:px-8 h-16 bg-white/80 backdrop-blur-xl border-b border-slate-200/70">
-                        <div class="flex items-center gap-3 min-w-0">
+                        <div class="flex items-center gap-3 flex-1 min-w-0">
                             <button @click="sidebarOpen = !sidebarOpen" class="lg:hidden w-9 h-9 grid place-items-center rounded-lg text-slate-600 hover:bg-slate-100 focus:outline-none" aria-label="Toggle menu">
                                 <i class="fas fa-bars"></i>
                             </button>
-                            <div class="app-page-title min-w-0 truncate">
+                            <div class="app-page-title flex-1 min-w-0">
                                 @isset($header)
                                     {{ $header }}
                                 @endisset
                             </div>
                         </div>
 
-                        <div class="flex items-center gap-2 sm:gap-3">
-                            <span class="hidden md:inline-flex items-center gap-2 rounded-full bg-slate-100 px-3 py-1.5 text-xs font-medium text-slate-500">
+                        <div class="flex items-center gap-2 sm:gap-3 shrink-0">
+                            <span class="hidden lg:inline-flex items-center gap-2 rounded-full bg-slate-100 px-3 py-1.5 text-xs font-medium text-slate-500">
                                 <i class="far fa-calendar text-teal-600"></i> {{ now()->format('D, d M Y') }}
                             </span>
                             @if(Route::has('pos.index') && auth()->user()->role !== 'super_admin' && !request()->routeIs('pos.*'))

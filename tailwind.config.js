@@ -8,6 +8,9 @@ export default {
         './vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php',
         './storage/framework/views/*.php',
         './resources/views/**/*.blade.php',
+        // Controllers/models build DataTables cells and badges with Tailwind classes
+        './app/Http/Controllers/**/*.php',
+        './app/Models/**/*.php',
     ],
 
     theme: {
