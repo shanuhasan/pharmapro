@@ -32,7 +32,8 @@
 /* Pages wrap themselves in .py-12 plus max-w-7xl; tighten the double padding. */
 .app-theme .app-main > .py-12,
 .app-theme .app-main > .py-6 { padding-top: .25rem; padding-bottom: 1.5rem; }
-.app-theme .app-main > div > .max-w-7xl { padding-left: 0; padding-right: 0; }
+/* Use the full content width (no 1280px cap) so cards don't float with wide side gutters. */
+.app-theme .app-main > div > .max-w-7xl { max-width: none; padding-left: 0; padding-right: 0; }
 
 /* Page title passed through the $header slot */
 .app-theme .app-page-title h2,
@@ -118,7 +119,8 @@
 /* DataTables chrome */
 /* Wide tables scroll horizontally inside their card instead of being clipped */
 .app-theme .app-main .dataTables_wrapper { overflow-x: auto; overflow-y: hidden; padding-bottom: 2px; }
-.app-theme .app-main table.dataTable { margin: .75rem 0 !important; border-bottom: 0 !important; }
+/* DataTables may pin a stale pixel width; keep it fluid so no scrollbar appears when it fits. */
+.app-theme .app-main table.dataTable { width: 100% !important; margin: .75rem 0 !important; border-bottom: 0 !important; }
 .app-theme .app-main table.dataTable.no-footer { border-bottom: 0 !important; }
 .app-theme .app-main table.dataTable > tbody > tr.odd > *,
 .app-theme .app-main table.dataTable.stripe > tbody > tr.odd > * { box-shadow: none; }
@@ -249,6 +251,17 @@
 .app-theme .app-main button.bg-medical-primary:active { transform: translateY(1px); }
 .app-theme .app-main .hover\:bg-blue-700:hover,
 .app-theme .app-main .hover\:bg-teal-700:hover { background-color: var(--brand-600); }
+/* Legacy blue/indigo action buttons across pages get the brand button look */
+.app-theme .app-main a.bg-blue-500, .app-theme .app-main button.bg-blue-500,
+.app-theme .app-main a.bg-blue-600, .app-theme .app-main button.bg-blue-600,
+.app-theme .app-main a.bg-indigo-600, .app-theme .app-main button.bg-indigo-600 {
+    background: linear-gradient(180deg, #14b8a6, #0d9488);
+    box-shadow: 0 1px 0 rgba(255, 255, 255, .25) inset, 0 6px 16px -8px rgba(13, 148, 136, .8);
+    border-radius: 10px;
+}
+.app-theme .app-main a.bg-blue-500:hover, .app-theme .app-main button.bg-blue-500:hover,
+.app-theme .app-main a.bg-blue-600:hover, .app-theme .app-main button.bg-blue-600:hover,
+.app-theme .app-main a.bg-indigo-600:hover, .app-theme .app-main button.bg-indigo-600:hover { filter: brightness(1.06); }
 .app-theme .app-main .bg-blue-600 { background-color: var(--brand); }
 .app-theme .app-main button.rounded,
 .app-theme .app-main a.rounded { border-radius: 10px; }
