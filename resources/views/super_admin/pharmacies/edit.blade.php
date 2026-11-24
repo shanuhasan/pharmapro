@@ -146,6 +146,9 @@
                                             </td>
                                             <td class="whitespace-nowrap">
                                                 <span class="inline-flex items-center rounded-full bg-teal-50 text-teal-700 px-2 py-0.5 text-xs font-semibold">{{ $r->periodLabel() }}</span>
+                                                @if($r->renew_type === 'initial')
+                                                    <span class="inline-flex items-center rounded-full bg-sky-50 text-sky-700 px-2 py-0.5 text-[11px] font-semibold">Registration</span>
+                                                @endif
                                                 @if($r->reactivated)
                                                     <span class="block mt-1 text-[11px] font-medium text-emerald-600"><i class="fas fa-circle-check"></i> Reactivated</span>
                                                 @endif

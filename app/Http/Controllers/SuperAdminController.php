@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Pharmacy;
+use App\Models\PharmacyRenewal;
 use App\Models\User;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\DB;
@@ -14,8 +15,45 @@ class SuperAdminController extends Controller
 {
     public function dashboard()
     {
-        $pharmaciesCount = Pharmacy::count();
-        return view('super_admin.dashboard', compact('pharmaciesCount'));
+        $pharmacies = Pharmacy::all();
+        $today = now()->startOfDay();
+
+        $stats = [
+            'total' => $pharmacies->count(),
+            'active' => $pharmacies->where('is_active', true)->count(),
+            'inactive' => $pharmacies->where('is_active', false)->count(),
+            'expired' => $pharmacies->filter->isMembershipExpired()->count(),
+            'expiring' => $pharmacies->filter(function ($p) {
+                $d = $p->membershipDaysLeft();
+                return $d !== null && $d >= 0 && $d <= 30;
+            })->count(),
+            'users' => User::withoutGlobalScopes()->whereNotNull('pharmacy_id')->count(),
+            'revenue_total' => (float) PharmacyRenewal::sum('amount'),
+            'revenue_month' => (float) PharmacyRenewal::where('created_at', '>=', $today->copy()->startOfMonth())->sum('amount'),
+            'renewals_month' => PharmacyRenewal::where('created_at', '>=', $today->copy()->startOfMonth())->count(),
+        ];
+
+        // Memberships ending within 60 days or already expired, most urgent first.
+        $attention = $pharmacies
+            ->map(fn ($p) => ['pharmacy' => $p, 'days' => $p->membershipDaysLeft()])
+            ->filter(fn ($row) => $row['days'] !== null && $row['days'] <= 60)
+            ->sortBy('days')
+            ->take(8)
+            ->values();
+
+        $recentRenewals = PharmacyRenewal::with(['pharmacy', 'renewedBy'])->latest()->latest('id')->take(6)->get();
+        $recentPharmacies = Pharmacy::latest()->take(5)->get();
+
+        // Revenue for the last 6 months (oldest first) for the mini bar chart.
+        $revenueByMonth = collect(range(5, 0))->map(function ($i) use ($today) {
+            $from = $today->copy()->startOfMonth()->subMonths($i);
+            return [
+                'label' => $from->format('M'),
+                'amount' => (float) PharmacyRenewal::whereBetween('created_at', [$from, $from->copy()->endOfMonth()])->sum('amount'),
+            ];
+        });
+
+        return view('super_admin.dashboard', compact('stats', 'attention', 'recentRenewals', 'recentPharmacies', 'revenueByMonth'));
     }
 
     public function pharmacies()
@@ -31,38 +69,61 @@ class SuperAdminController extends Controller
 
     public function storePharmacy(Request $request)
     {
-        $request->validate([
+        $data = $request->validate([
             'pharmacy_name' => 'required|string|max:255',
             'pharmacy_email' => 'required|email|unique:pharmacies,email',
             'pharmacy_phone' => 'nullable|string|max:20',
             'pharmacy_address' => 'nullable|string',
-            
+
+            // Initial membership
+            'months' => 'required|integer|in:1,3,6,12,24,36',
+            'amount' => 'nullable|numeric|min:0|max:99999999',
+            'note' => 'nullable|string|max:500',
+
             // Initial Admin User validation
             'admin_name' => 'required|string|max:255',
             'admin_email' => 'required|email|unique:users,email',
             'admin_password' => ['required', 'confirmed', Password::defaults()],
         ]);
 
-        // Create Pharmacy
-        $pharmacy = Pharmacy::create([
-            'name' => $request->pharmacy_name,
-            'email' => $request->pharmacy_email,
-            'phone' => $request->pharmacy_phone,
-            'address' => $request->pharmacy_address,
-            'expires_at' => now()->addYear()->toDateString(),
-        ]);
+        $expiresAt = now()->startOfDay()->addMonthsNoOverflow((int) $data['months']);
 
-        // Create Admin User for Pharmacy
-        User::create([
-            'name' => $request->admin_name,
-            'email' => $request->admin_email,
-            'password' => Hash::make($request->admin_password),
-            'role' => 'admin',
-            'pharmacy_id' => $pharmacy->id,
-            'is_active' => true,
-        ]);
+        $pharmacy = DB::transaction(function () use ($request, $data, $expiresAt) {
+            $pharmacy = Pharmacy::create([
+                'name' => $request->pharmacy_name,
+                'email' => $request->pharmacy_email,
+                'phone' => $request->pharmacy_phone,
+                'address' => $request->pharmacy_address,
+                'is_active' => true,
+                'expires_at' => $expiresAt->toDateString(),
+            ]);
 
-        return redirect()->route('super_admin.pharmacies')->with('success', 'Pharmacy and Admin User created successfully.');
+            User::create([
+                'name' => $request->admin_name,
+                'email' => $request->admin_email,
+                'password' => Hash::make($request->admin_password),
+                'role' => 'admin',
+                'pharmacy_id' => $pharmacy->id,
+                'is_active' => true,
+            ]);
+
+            // First entry in the membership history.
+            $pharmacy->renewals()->create([
+                'renewed_by' => auth()->id(),
+                'previous_expires_at' => null,
+                'new_expires_at' => $expiresAt->toDateString(),
+                'renew_type' => 'initial',
+                'months' => (int) $data['months'],
+                'amount' => $data['amount'] ?? null,
+                'note' => $data['note'] ?? null,
+                'reactivated' => false,
+            ]);
+
+            return $pharmacy;
+        });
+
+        return redirect()->route('super_admin.pharmacies')
+            ->with('success', 'Pharmacy "' . $pharmacy->name . '" and its admin login were created. Membership runs until ' . $expiresAt->format('d M Y') . '.');
     }
 
     public function editPharmacy(Pharmacy $pharmacy)
