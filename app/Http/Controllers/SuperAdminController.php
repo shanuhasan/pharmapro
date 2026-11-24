@@ -22,6 +22,7 @@ class SuperAdminController extends Controller
             'total' => $pharmacies->count(),
             'active' => $pharmacies->where('is_active', true)->count(),
             'inactive' => $pharmacies->where('is_active', false)->count(),
+            'trial' => $pharmacies->filter(fn ($p) => $p->on_trial && !$p->isMembershipExpired())->count(),
             'expired' => $pharmacies->filter->isMembershipExpired()->count(),
             'expiring' => $pharmacies->filter(function ($p) {
                 $d = $p->membershipDaysLeft();
@@ -75,8 +76,10 @@ class SuperAdminController extends Controller
             'pharmacy_phone' => 'nullable|string|max:20',
             'pharmacy_address' => 'nullable|string',
 
-            // Initial membership
-            'months' => 'required|integer|in:1,3,6,12,24,36',
+            // Initial membership: paid period or free trial
+            'plan' => 'required|in:paid,trial',
+            'months' => 'required_if:plan,paid|nullable|integer|in:1,3,6,12,24,36',
+            'trial_days' => 'required_if:plan,trial|nullable|integer|min:1|max:90',
             'amount' => 'nullable|numeric|min:0|max:99999999',
             'note' => 'nullable|string|max:500',
 
@@ -86,9 +89,12 @@ class SuperAdminController extends Controller
             'admin_password' => ['required', 'confirmed', Password::defaults()],
         ]);
 
-        $expiresAt = now()->startOfDay()->addMonthsNoOverflow((int) $data['months']);
+        $isTrial = $data['plan'] === 'trial';
+        $expiresAt = $isTrial
+            ? now()->startOfDay()->addDays((int) $data['trial_days'])
+            : now()->startOfDay()->addMonthsNoOverflow((int) $data['months']);
 
-        $pharmacy = DB::transaction(function () use ($request, $data, $expiresAt) {
+        $pharmacy = DB::transaction(function () use ($request, $data, $expiresAt, $isTrial) {
             $pharmacy = Pharmacy::create([
                 'name' => $request->pharmacy_name,
                 'email' => $request->pharmacy_email,
@@ -96,6 +102,7 @@ class SuperAdminController extends Controller
                 'address' => $request->pharmacy_address,
                 'is_active' => true,
                 'expires_at' => $expiresAt->toDateString(),
+                'on_trial' => $isTrial,
             ]);
 
             User::create([
@@ -113,8 +120,9 @@ class SuperAdminController extends Controller
                 'previous_expires_at' => null,
                 'new_expires_at' => $expiresAt->toDateString(),
                 'renew_type' => 'initial',
-                'months' => (int) $data['months'],
-                'amount' => $data['amount'] ?? null,
+                'months' => $isTrial ? null : (int) $data['months'],
+                'trial_days' => $isTrial ? (int) $data['trial_days'] : null,
+                'amount' => $isTrial ? null : ($data['amount'] ?? null),
                 'note' => $data['note'] ?? null,
                 'reactivated' => false,
             ]);
@@ -123,7 +131,8 @@ class SuperAdminController extends Controller
         });
 
         return redirect()->route('super_admin.pharmacies')
-            ->with('success', 'Pharmacy "' . $pharmacy->name . '" and its admin login were created. Membership runs until ' . $expiresAt->format('d M Y') . '.');
+            ->with('success', 'Pharmacy "' . $pharmacy->name . '" and its admin login were created. '
+                . ($isTrial ? 'Free trial' : 'Membership') . ' runs until ' . $expiresAt->format('d M Y') . '.');
     }
 
     public function editPharmacy(Pharmacy $pharmacy)
@@ -193,8 +202,9 @@ class SuperAdminController extends Controller
     public function renewPharmacy(Request $request, Pharmacy $pharmacy)
     {
         $data = $request->validate([
-            'renew_type' => 'required|in:months,date',
+            'renew_type' => 'required|in:months,date,trial',
             'months' => 'required_if:renew_type,months|nullable|integer|in:1,3,6,12,24,36',
+            'trial_days' => 'required_if:renew_type,trial|nullable|integer|min:1|max:90',
             'expires_at' => 'required_if:renew_type,date|nullable|date|after_or_equal:today',
             'reactivate' => 'nullable|boolean',
             'amount' => 'nullable|numeric|min:0|max:99999999',
@@ -203,19 +213,30 @@ class SuperAdminController extends Controller
 
         $previous = $pharmacy->membershipEndsAt();
 
+        // Extend from the current end date if still running, otherwise from today,
+        // so early renewals never lose remaining days.
+        $base = ($previous && $previous->isFuture()) ? $previous->copy()->startOfDay() : now()->startOfDay();
+        $isTrial = $data['renew_type'] === 'trial';
+
         if ($data['renew_type'] === 'months') {
-            // Extend from the current end date if still running, otherwise from today,
-            // so early renewals never lose remaining days.
-            $base = ($previous && $previous->isFuture()) ? $previous->copy()->startOfDay() : now()->startOfDay();
             $newEnd = $base->addMonthsNoOverflow((int) $data['months']);
+        } elseif ($isTrial) {
+            $newEnd = $base->addDays((int) $data['trial_days']);
         } else {
             $newEnd = \Illuminate\Support\Carbon::parse($data['expires_at']);
         }
 
+        // Paid renewals end the trial. Trial days given to a pharmacy with a running
+        // paid membership are complimentary and keep it on the paid plan.
+        $onTrial = $isTrial
+            ? ($pharmacy->on_trial || $pharmacy->isMembershipExpired())
+            : false;
+
         $reactivated = $request->boolean('reactivate') && !$pharmacy->is_active;
 
-        DB::transaction(function () use ($pharmacy, $newEnd, $previous, $data, $reactivated) {
+        DB::transaction(function () use ($pharmacy, $newEnd, $previous, $data, $reactivated, $isTrial, $onTrial) {
             $pharmacy->expires_at = $newEnd->toDateString();
+            $pharmacy->on_trial = $onTrial;
             if ($reactivated) {
                 $pharmacy->is_active = true;
             }
@@ -227,14 +248,15 @@ class SuperAdminController extends Controller
                 'new_expires_at' => $newEnd->toDateString(),
                 'renew_type' => $data['renew_type'],
                 'months' => $data['renew_type'] === 'months' ? (int) $data['months'] : null,
-                'amount' => $data['amount'] ?? null,
+                'trial_days' => $isTrial ? (int) $data['trial_days'] : null,
+                'amount' => $isTrial ? null : ($data['amount'] ?? null),
                 'note' => $data['note'] ?? null,
                 'reactivated' => $reactivated,
             ]);
         });
 
         return redirect()->route('super_admin.pharmacies.edit', $pharmacy)
-            ->with('success', 'Membership for "' . $pharmacy->name . '" now runs until ' . $newEnd->format('d M Y') . '.');
+            ->with('success', ($onTrial ? 'Free trial' : 'Membership') . ' for "' . $pharmacy->name . '" now runs until ' . $newEnd->format('d M Y') . '.');
     }
 
     public function toggleStatus(Pharmacy $pharmacy)

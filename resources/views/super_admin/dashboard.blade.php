@@ -39,7 +39,7 @@
         <!-- KPI tiles -->
         <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
             @foreach([
-                ['Pharmacies', $stats['total'], $stats['active'] . ' active · ' . $stats['inactive'] . ' inactive', 'fa-clinic-medical', 'bg-teal-50 text-teal-600'],
+                ['Pharmacies', $stats['total'], $stats['active'] . ' active · ' . $stats['trial'] . ' on trial · ' . $stats['inactive'] . ' inactive', 'fa-clinic-medical', 'bg-teal-50 text-teal-600'],
                 ['Expiring in 30 days', $stats['expiring'], $stats['expired'] . ' already expired', 'fa-hourglass-half', 'bg-amber-50 text-amber-600'],
                 ['Revenue this month', $rupee($stats['revenue_month']), $stats['renewals_month'] . ' ' . str('renewal')->plural($stats['renewals_month']) . ' this month', 'fa-indian-rupee-sign', 'bg-emerald-50 text-emerald-600'],
                 ['Pharmacy users', $stats['users'], 'Across all pharmacies', 'fa-users', 'bg-violet-50 text-violet-600'],
@@ -86,6 +86,9 @@
                                         <td>
                                             <span class="block font-medium text-slate-800">{{ $p->name }}</span>
                                             <span class="block text-[11px] text-slate-400">{{ $p->email }}</span>
+                                            @if($p->on_trial)
+                                                <span class="mt-1 inline-flex items-center gap-1 rounded-full bg-sky-100 text-sky-800 px-2 text-[11px] leading-5 font-semibold"><i class="fas fa-flask text-[9px]"></i> Trial</span>
+                                            @endif
                                         </td>
                                         <td class="whitespace-nowrap">{{ $p->membershipEndsAt()->format('d M Y') }}</td>
                                         <td class="whitespace-nowrap">
@@ -158,7 +161,7 @@
                                     Deleted pharmacy
                                 @endif
                             </p>
-                            <p class="text-xs text-slate-500">{{ $r->renew_type === 'initial' ? 'Registered' : 'Renewed' }} · {{ $r->periodLabel() }} · until {{ $r->new_expires_at->format('d M Y') }}</p>
+                            <p class="text-xs text-slate-500">{{ $r->renew_type === 'initial' ? 'Registered' : ($r->renew_type === 'trial' ? 'Trial days given' : 'Renewed') }} · {{ $r->periodLabel() }} · until {{ $r->new_expires_at->format('d M Y') }}</p>
                         </div>
                         <div class="text-right shrink-0">
                             <p class="text-sm font-semibold text-slate-800 tabular-nums">{{ $r->amount !== null ? $rupee($r->amount) : '—' }}</p>
@@ -181,7 +184,7 @@
                         <span class="w-9 h-9 rounded-full bg-gradient-to-br from-teal-400 to-emerald-600 text-white grid place-items-center text-sm font-semibold shrink-0">{{ strtoupper(mb_substr($p->name, 0, 1)) }}</span>
                         <div class="min-w-0 flex-1">
                             <p class="text-sm font-medium text-slate-800 truncate">{{ $p->name }}</p>
-                            <p class="text-xs text-slate-500 truncate">Joined {{ $p->created_at?->format('d M Y') }}</p>
+                            <p class="text-xs text-slate-500 truncate">Joined {{ $p->created_at?->format('d M Y') }}@if($p->on_trial) · <span class="text-sky-700 font-medium">Trial</span>@endif</p>
                         </div>
                         @if($p->is_active)
                             <span class="w-2 h-2 rounded-full bg-emerald-500" title="Active"></span>

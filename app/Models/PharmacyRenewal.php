@@ -35,6 +35,10 @@ class PharmacyRenewal extends Model
 
     public function periodLabel(): string
     {
+        if ($this->trial_days) {
+            return $this->trial_days . '-day trial';
+        }
+
         if (in_array($this->renew_type, ['months', 'initial'], true) && $this->months) {
             return $this->months % 12 === 0
                 ? ($this->months / 12) . ' ' . str('year')->plural($this->months / 12)

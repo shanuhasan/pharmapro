@@ -51,6 +51,9 @@
                                             @else
                                                 <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">{{ $days }} days</span>
                                             @endif
+                                            @if($pharmacy->on_trial)
+                                                <span class="inline-flex items-center gap-1 rounded-full bg-sky-100 text-sky-800 px-2 text-xs leading-5 font-semibold"><i class="fas fa-flask text-[10px]"></i> Trial</span>
+                                            @endif
                                             <span class="block text-[11px] text-slate-400 mt-0.5">until {{ $pharmacy->membershipEndsAt()->format('d M Y') }}</span>
                                         @endif
                                     </td>

@@ -145,7 +145,7 @@
                                                 <span class="block text-[11px] text-slate-400">{{ $r->created_at->format('h:i A') }}</span>
                                             </td>
                                             <td class="whitespace-nowrap">
-                                                <span class="inline-flex items-center rounded-full bg-teal-50 text-teal-700 px-2 py-0.5 text-xs font-semibold">{{ $r->periodLabel() }}</span>
+                                                <span class="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-semibold {{ $r->trial_days ? 'bg-sky-50 text-sky-700' : 'bg-teal-50 text-teal-700' }}">{{ $r->periodLabel() }}</span>
                                                 @if($r->renew_type === 'initial')
                                                     <span class="inline-flex items-center rounded-full bg-sky-50 text-sky-700 px-2 py-0.5 text-[11px] font-semibold">Registration</span>
                                                 @endif
@@ -190,7 +190,14 @@
 
                     <div class="mt-6 pt-5 border-t border-slate-100 space-y-3 text-sm">
                         <div class="flex justify-between"><span class="text-slate-500">Registered</span><span class="font-medium text-slate-800">{{ $pharmacy->created_at?->format('d M Y') ?? '—' }}</span></div>
-                        <div class="flex justify-between"><span class="text-slate-500">Membership ends</span><span class="font-medium text-slate-800">{{ $expiresAt?->format('d M Y') ?? '—' }}</span></div>
+                        <div class="flex justify-between items-center"><span class="text-slate-500">Plan</span>
+                            @if($pharmacy->on_trial)
+                                <span class="inline-flex items-center gap-1 rounded-full bg-sky-100 text-sky-800 px-2 text-xs leading-5 font-semibold"><i class="fas fa-flask text-[10px]"></i> Trial</span>
+                            @else
+                                <span class="font-medium text-slate-800">Paid membership</span>
+                            @endif
+                        </div>
+                        <div class="flex justify-between"><span class="text-slate-500">{{ $pharmacy->on_trial ? 'Trial ends' : 'Membership ends' }}</span><span class="font-medium text-slate-800">{{ $expiresAt?->format('d M Y') ?? '—' }}</span></div>
                         <div class="flex justify-between items-center">
                             <span class="text-slate-500">Remaining</span>
                             @if(is_null($days))
@@ -208,7 +215,8 @@
 
                 <!-- Renew membership (separate form, linked via the form="" attribute) -->
                 <div id="renew" class="bg-white shadow-sm sm:rounded-lg p-6 scroll-mt-24"
-                     x-data="{ type: '{{ old('renew_type', 'months') }}', months: {{ (int) old('months', 12) }}, base: '{{ $renewFrom->toDateString() }}',
+                     x-data="{ type: '{{ old('renew_type', $pharmacy->on_trial ? 'trial' : 'months') }}', months: {{ (int) old('months', 12) }}, trialDays: {{ (int) old('trial_days', 14) }}, base: '{{ $renewFrom->toDateString() }}',
+                               trialPreview() { const d = new Date(this.base + 'T00:00:00'); d.setDate(d.getDate() + Number(this.trialDays || 0)); return d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }); },
                                preview() { const d = new Date(this.base + 'T00:00:00'); const day = d.getDate(); d.setDate(1); d.setMonth(d.getMonth() + Number(this.months)); d.setDate(Math.min(day, new Date(d.getFullYear(), d.getMonth() + 1, 0).getDate())); return d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }); } }">
                     <div class="flex items-center gap-3 mb-4">
                         <span class="w-10 h-10 rounded-xl bg-amber-50 text-amber-600 grid place-items-center"><i class="fas fa-rotate"></i></span>
@@ -221,8 +229,9 @@
                     <input type="hidden" name="renew_type" x-model="type" form="renew-form">
 
                     <div class="flex rounded-lg bg-slate-100 p-1 text-xs font-semibold mb-4">
-                        <button type="button" @click="type = 'months'" class="flex-1 rounded-md py-1.5 transition" :class="type === 'months' ? 'bg-white shadow-sm text-slate-900' : 'text-slate-500'">Extend by period</button>
-                        <button type="button" @click="type = 'date'" class="flex-1 rounded-md py-1.5 transition" :class="type === 'date' ? 'bg-white shadow-sm text-slate-900' : 'text-slate-500'">Set end date</button>
+                        <button type="button" @click="type = 'months'" class="flex-1 rounded-md py-1.5 transition" :class="type === 'months' ? 'bg-white shadow-sm text-slate-900' : 'text-slate-500'">By period</button>
+                        <button type="button" @click="type = 'date'" class="flex-1 rounded-md py-1.5 transition" :class="type === 'date' ? 'bg-white shadow-sm text-slate-900' : 'text-slate-500'">End date</button>
+                        <button type="button" @click="type = 'trial'" class="flex-1 rounded-md py-1.5 transition" :class="type === 'trial' ? 'bg-white shadow-sm text-sky-700' : 'text-slate-500'"><i class="fas fa-flask text-[10px]"></i> Trial</button>
                     </div>
 
                     <div x-show="type === 'months'">
@@ -244,12 +253,29 @@
                                class="block mt-1 w-full rounded-md shadow-sm border-gray-300 sm:text-sm">
                     </div>
 
-                    <div class="grid grid-cols-2 gap-3 mt-4">
+                    <div x-show="type === 'trial'" x-cloak>
+                        <div class="grid grid-cols-4 gap-2">
+                            @foreach([7, 14, 30] as $d)
+                                <button type="button" @click="trialDays = {{ $d }}"
+                                        class="rounded-lg border px-2 py-2 text-xs font-semibold transition"
+                                        :class="Number(trialDays) === {{ $d }} ? 'border-sky-600 bg-sky-50 text-sky-700 ring-2 ring-sky-600/15' : 'border-slate-200 text-slate-600 hover:border-sky-300'">{{ $d }} days</button>
+                            @endforeach
+                            <input type="number" min="1" max="90" x-model="trialDays" aria-label="Custom trial days"
+                                   class="rounded-lg border-slate-200 text-xs font-semibold text-center px-1 py-2" placeholder="Days">
+                        </div>
+                        <input type="hidden" name="trial_days" :value="type === 'trial' ? trialDays : ''" form="renew-form">
+                        <p class="mt-3 text-xs text-slate-500">Trial ends: <span class="font-semibold text-slate-800" x-text="trialPreview()"></span></p>
+                        @if(!$pharmacy->on_trial && !$pharmacy->isMembershipExpired())
+                            <p class="mt-2 text-[11px] text-sky-700 bg-sky-50 rounded-md px-2.5 py-1.5"><i class="fas fa-circle-info"></i> This pharmacy has a running paid membership. These days are added free and it stays on the paid plan.</p>
+                        @endif
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-3 mt-4" x-show="type !== 'trial'">
                         <div>
                             <label class="block font-medium text-xs text-gray-600" for="renew_amount">Amount received <span class="text-slate-400">(optional)</span></label>
                             <div class="relative mt-1">
                                 <span class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm">₹</span>
-                                <input type="number" step="0.01" min="0" id="renew_amount" name="amount" form="renew-form" value="{{ old('amount') }}" class="block w-full rounded-md shadow-sm border-gray-300 sm:text-sm !pl-7" placeholder="0.00">
+                                <input type="number" step="0.01" min="0" id="renew_amount" name="amount" form="renew-form" :disabled="type === 'trial'" value="{{ old('amount') }}" class="block w-full rounded-md shadow-sm border-gray-300 sm:text-sm !pl-7" placeholder="0.00">
                             </div>
                         </div>
                         <div>
@@ -258,8 +284,8 @@
                         </div>
                     </div>
 
-                    @if($errors->hasAny(['renew_type', 'months', 'expires_at', 'amount', 'note']))
-                        <p class="mt-2 text-xs text-rose-600">{{ $errors->first('months') ?: $errors->first('expires_at') ?: $errors->first('amount') ?: $errors->first('note') ?: $errors->first('renew_type') }}</p>
+                    @if($errors->hasAny(['renew_type', 'months', 'expires_at', 'amount', 'note', 'trial_days']))
+                        <p class="mt-2 text-xs text-rose-600">{{ $errors->first('trial_days') ?: $errors->first('months') ?: $errors->first('expires_at') ?: $errors->first('amount') ?: $errors->first('note') ?: $errors->first('renew_type') }}</p>
                     @endif
 
                     @unless($pharmacy->is_active)
@@ -269,9 +295,11 @@
                         </label>
                     @endunless
 
-                    <button type="submit" form="renew-form" class="mt-4 w-full inline-flex justify-center items-center gap-2 rounded-lg px-4 py-2.5 text-sm font-semibold text-white bg-gradient-to-b from-amber-500 to-amber-600 shadow-sm shadow-amber-600/30 hover:brightness-105"
-                            onclick="return confirm('Renew membership for {{ addslashes($pharmacy->name) }}?');">
-                        <i class="fas fa-rotate"></i> Renew membership
+                    <button type="submit" form="renew-form" class="mt-4 w-full inline-flex justify-center items-center gap-2 rounded-lg px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:brightness-105"
+                            :class="type === 'trial' ? 'bg-gradient-to-b from-sky-500 to-sky-600 shadow-sky-600/30' : 'bg-gradient-to-b from-amber-500 to-amber-600 shadow-amber-600/30'"
+                            @click="if (!confirm(type === 'trial' ? 'Give ' + trialDays + ' trial days to {{ addslashes($pharmacy->name) }}?' : 'Renew membership for {{ addslashes($pharmacy->name) }}?')) $event.preventDefault()">
+                        <i class="fas" :class="type === 'trial' ? 'fa-flask' : 'fa-rotate'"></i>
+                        <span x-text="type === 'trial' ? 'Give trial days' : 'Renew membership'"></span>
                     </button>
                 </div>
 

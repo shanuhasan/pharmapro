@@ -163,6 +163,23 @@
                         </div>
                     </header>
 
+                    <!-- Free-trial banner for pharmacy users -->
+                    @php($tenant = auth()->user()->role !== 'super_admin' ? auth()->user()->pharmacy : null)
+                    @if($tenant && $tenant->on_trial && !$tenant->isMembershipExpired())
+                        @php($trialLeft = $tenant->membershipDaysLeft())
+                        <div class="px-4 sm:px-6 lg:px-8 pt-6">
+                            <div class="flex flex-col sm:flex-row sm:items-center gap-3 rounded-xl border px-4 py-3 shadow-sm {{ $trialLeft <= 3 ? 'border-amber-200 bg-amber-50/80 text-amber-900' : 'border-sky-200 bg-sky-50/80 text-sky-900' }}">
+                                <span class="w-8 h-8 shrink-0 rounded-lg grid place-items-center {{ $trialLeft <= 3 ? 'bg-amber-500' : 'bg-sky-500' }} text-white"><i class="fas fa-flask text-sm"></i></span>
+                                <p class="flex-1 text-sm">
+                                    <span class="font-semibold">Free trial:</span>
+                                    {{ $trialLeft === 0 ? 'last day today' : $trialLeft . ' ' . str('day')->plural($trialLeft) . ' left' }}
+                                    <span class="opacity-75">(ends {{ $tenant->membershipEndsAt()->format('d M Y') }}).</span>
+                                    Contact the administrator to activate a paid membership and keep using {{ setting('pharmacy_name', 'PharmaPro') }} without interruption.
+                                </p>
+                            </div>
+                        </div>
+                    @endif
+
                     <!-- Flash Messages -->
                     @if(session('success'))
                         <div class="px-4 sm:px-6 lg:px-8 pt-6" x-data="{ show: true }" x-show="show" x-transition x-init="setTimeout(() => show = false, 6000)">

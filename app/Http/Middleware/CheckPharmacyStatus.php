@@ -31,7 +31,9 @@ class CheckPharmacyStatus
                     $request->session()->invalidate();
                     $request->session()->regenerateToken();
 
-                    return redirect()->route('login')->withErrors(['email' => 'Membership Expired. Please contact Super Admin.']);
+                    return redirect()->route('login')->withErrors(['email' => $pharmacy->on_trial
+                        ? 'Your free trial has ended. Please contact Super Admin to activate a membership.'
+                        : 'Membership Expired. Please contact Super Admin.']);
                 }
             }
         }

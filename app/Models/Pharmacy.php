@@ -18,6 +18,7 @@ class Pharmacy extends Model
         return [
             'is_active' => 'boolean',
             'expires_at' => 'date',
+            'on_trial' => 'boolean',
         ];
     }
 
