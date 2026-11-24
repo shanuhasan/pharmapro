@@ -16,6 +16,9 @@ Route::middleware(['auth', 'super_admin'])->prefix('super-admin')->name('super_a
     Route::get('/pharmacies', [\App\Http\Controllers\SuperAdminController::class, 'pharmacies'])->name('pharmacies');
     Route::get('/pharmacies/create', [\App\Http\Controllers\SuperAdminController::class, 'createPharmacy'])->name('pharmacies.create');
     Route::post('/pharmacies', [\App\Http\Controllers\SuperAdminController::class, 'storePharmacy'])->name('pharmacies.store');
+    Route::get('/pharmacies/{pharmacy}/edit', [\App\Http\Controllers\SuperAdminController::class, 'editPharmacy'])->name('pharmacies.edit');
+    Route::put('/pharmacies/{pharmacy}', [\App\Http\Controllers\SuperAdminController::class, 'updatePharmacy'])->name('pharmacies.update');
+    Route::post('/pharmacies/{pharmacy}/renew', [\App\Http\Controllers\SuperAdminController::class, 'renewPharmacy'])->name('pharmacies.renew');
     Route::post('/pharmacies/{pharmacy}/toggle-status', [\App\Http\Controllers\SuperAdminController::class, 'toggleStatus'])->name('pharmacies.toggleStatus');
 });
 

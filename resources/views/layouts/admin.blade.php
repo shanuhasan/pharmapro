@@ -191,7 +191,7 @@
 
                     <!-- Footer -->
                     <footer class="px-4 sm:px-6 lg:px-8 py-5 border-t border-slate-200/70 text-xs text-slate-500 flex flex-col sm:flex-row items-center justify-between gap-2">
-                        <p>&copy; {{ date('Y') }} {{ setting('pharmacy_name', 'M PharmaPro') }}. All rights reserved.</p>
+                        <p>&copy; {{ date('Y') }} {{ auth()->user()->role === 'super_admin' ? 'M PharmaPro' : setting('pharmacy_name', 'M PharmaPro') }}. All rights reserved.</p>
                         <p class="flex items-center gap-1.5">Powered by <x-brand-mark class="w-4 h-4" /> <span class="font-medium text-slate-600">M PharmaPro</span> · Developed by <a href="https://musheeda.com/" class="text-teal-600 hover:text-teal-700 font-medium">Musheeda</a></p>
                     </footer>
 

@@ -26,7 +26,7 @@ class CheckPharmacyStatus
                     return redirect()->route('login')->withErrors(['email' => 'Amount pending. Please contact Super Admin.']);
                 }
 
-                if ($pharmacy->created_at && $pharmacy->created_at->copy()->addYear()->isPast()) {
+                if ($pharmacy->isMembershipExpired()) {
                     \Illuminate\Support\Facades\Auth::logout();
                     $request->session()->invalidate();
                     $request->session()->regenerateToken();
