@@ -7,6 +7,10 @@
 
         <title>M PharmaPro | Login</title>
 
+        <link rel="icon" type="image/svg+xml" href="{{ asset('favicon.svg') }}">
+
+        <link rel="apple-touch-icon" href="{{ asset('images/logo-mark.svg') }}">
+
         <!-- Fonts -->
         <link rel="preconnect" href="https://fonts.bunny.net">
         <link href="https://fonts.bunny.net/css?family=figtree:300,400,500,600,700,800,900&display=swap" rel="stylesheet" />
@@ -128,9 +132,7 @@
         <!-- Logo -->
         <div class="relative z-10 text-center mb-4">
             <a href="/" class="flex flex-col items-center gap-4 group">
-                <div class="w-16 h-16 rounded-2xl bg-gradient-to-br from-medical-primary to-medical-success flex items-center justify-center text-white shadow-lg group-hover:scale-110 transition-transform duration-300">
-                    <i class="fas fa-plus-square text-3xl"></i>
-                </div>
+                <x-brand-mark class="w-16 h-16 drop-shadow-[0_10px_24px_rgba(13,148,136,.5)] group-hover:scale-105 transition-transform duration-300" />
                 <h1 class="text-3xl font-bold tracking-tight text-white">M PharmaPro</h1>
             </a>
         </div>

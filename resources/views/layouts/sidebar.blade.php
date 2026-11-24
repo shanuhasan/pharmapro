@@ -4,13 +4,13 @@
     <div class="flex items-center justify-center h-16 bg-medical-darker shadow-md">
         <a href="{{ route('dashboard') }}" class="text-white text-xl font-bold uppercase tracking-wider flex items-center">
             @if(auth()->user()->role === 'super_admin')
-                <i class="fas fa-plus-square text-medical-primary mr-2"></i>
+                <x-brand-mark class="w-8 h-8 mr-2.5" />
                 PharmaPro
             @else
                 @if(setting('pharmacy_logo'))
                     <img src="{{ asset(setting('pharmacy_logo')) }}" alt="Logo" class="h-8 mr-3 object-contain bg-white rounded p-1">
                 @else
-                    <i class="fas fa-plus-square text-medical-primary mr-2"></i>
+                    <x-brand-mark class="w-8 h-8 mr-2.5" />
                 @endif
                 {{ setting('pharmacy_name', 'PharmaPro') }}
             @endif
