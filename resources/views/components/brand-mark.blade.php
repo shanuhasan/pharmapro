@@ -1,6 +1,6 @@
 {{-- M PharmaPro monogram: gradient tile, single-stroke "M", gold cross nestled between the peaks. --}}
 @php($uid = 'bm' . substr(md5(uniqid('', true)), 0, 6))
-<svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="M PharmaPro" {{ $attributes->merge(['class' => 'w-9 h-9']) }}>
+<svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="M PharmaPro" {{ $attributes->has('class') ? $attributes : $attributes->merge(['class' => 'w-9 h-9']) }}>
     <defs>
         <linearGradient id="{{ $uid }}-bg" x1="8" y1="4" x2="56" y2="60" gradientUnits="userSpaceOnUse">
             <stop offset="0" stop-color="#2DD4BF"/>

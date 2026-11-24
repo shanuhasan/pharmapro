@@ -90,115 +90,112 @@
             }
         </style>
     </head>
-    <body class="font-sans antialiased bg-gray-100" x-data="{ sidebarOpen: false }">
+    <body class="app-theme font-sans antialiased" x-data="{ sidebarOpen: false }">
         <div class="flex h-screen overflow-hidden">
-            
+
+            <!-- Mobile sidebar backdrop -->
+            <div x-show="sidebarOpen" x-transition.opacity @click="sidebarOpen = false" class="fixed inset-0 z-20 bg-slate-900/50 backdrop-blur-sm lg:hidden" x-cloak></div>
+
             <!-- Sidebar -->
             @include('layouts.sidebar')
 
             <!-- Main Content -->
             <div class="relative flex flex-col flex-1 overflow-hidden">
-                
+
                 <!-- Scrollable Area -->
-                <div class="flex flex-col flex-1 overflow-y-auto overflow-x-hidden">
-                
-                    <!-- Top Header -->
-                    <header class="sticky top-0 z-30 flex items-center justify-between px-6 py-4 bg-medical-primary shadow-md">
-                    <div class="flex items-center">
-                        <button @click="sidebarOpen = !sidebarOpen" class="text-white focus:outline-none lg:hidden">
-                            <i class="fas fa-bars text-xl"></i>
-                        </button>
-                    </div>
+                <div class="app-scroll flex flex-col flex-1 overflow-y-auto overflow-x-hidden">
 
-                    <div class="flex items-center space-x-4">
-                        <!-- User Dropdown -->
-                        <x-dropdown align="right" width="48">
-                            <x-slot name="trigger">
-                                <button class="flex items-center text-sm font-medium text-white hover:text-gray-200 hover:border-transparent focus:outline-none focus:text-gray-200 focus:border-transparent transition duration-150 ease-in-out">
-                                    <div>{{ Auth::user()->name ?? 'User' }}</div>
+                    <!-- Top Bar -->
+                    <header class="sticky top-0 z-30 flex items-center justify-between gap-4 px-4 sm:px-6 lg:px-8 h-16 bg-white/80 backdrop-blur-xl border-b border-slate-200/70">
+                        <div class="flex items-center gap-3 min-w-0">
+                            <button @click="sidebarOpen = !sidebarOpen" class="lg:hidden w-9 h-9 grid place-items-center rounded-lg text-slate-600 hover:bg-slate-100 focus:outline-none" aria-label="Toggle menu">
+                                <i class="fas fa-bars"></i>
+                            </button>
+                            <div class="app-page-title min-w-0 truncate">
+                                @isset($header)
+                                    {{ $header }}
+                                @endisset
+                            </div>
+                        </div>
 
-                                    <div class="ms-1">
-                                        <svg class="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
-                                            <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
-                                        </svg>
-                                    </div>
-                                </button>
-                            </x-slot>
+                        <div class="flex items-center gap-2 sm:gap-3">
+                            <span class="hidden md:inline-flex items-center gap-2 rounded-full bg-slate-100 px-3 py-1.5 text-xs font-medium text-slate-500">
+                                <i class="far fa-calendar text-teal-600"></i> {{ now()->format('D, d M Y') }}
+                            </span>
+                            @if(Route::has('pos.index') && auth()->user()->role !== 'super_admin')
+                                <a href="{{ route('pos.index') }}" class="hidden sm:inline-flex items-center gap-2 rounded-lg px-3.5 py-2 text-sm font-semibold text-white bg-gradient-to-b from-teal-500 to-teal-600 shadow-sm shadow-teal-600/30 hover:brightness-105 transition">
+                                    <i class="fas fa-cash-register text-xs"></i> New Sale
+                                </a>
+                            @endif
 
-                            <x-slot name="content">
-                                <x-dropdown-link :href="route('profile.edit')">
-                                    {{ __('Profile') }}
-                                </x-dropdown-link>
+                            <!-- User Dropdown -->
+                            <x-dropdown align="right" width="48">
+                                <x-slot name="trigger">
+                                    <button class="flex items-center gap-2.5 rounded-full pl-1 pr-2.5 py-1 hover:bg-slate-100 transition focus:outline-none">
+                                        <span class="w-8 h-8 rounded-full bg-gradient-to-br from-teal-400 to-emerald-600 grid place-items-center text-white text-sm font-semibold">
+                                            {{ strtoupper(mb_substr(Auth::user()->name ?? 'U', 0, 1)) }}
+                                        </span>
+                                        <span class="hidden sm:block text-left leading-tight">
+                                            <span class="block text-sm font-semibold text-slate-800">{{ Auth::user()->name ?? 'User' }}</span>
+                                            <span class="block text-[11px] text-slate-500 capitalize">{{ str_replace('_', ' ', Auth::user()->role ?? '') }}</span>
+                                        </span>
+                                        <i class="fas fa-chevron-down text-[10px] text-slate-400"></i>
+                                    </button>
+                                </x-slot>
 
-                                <!-- Authentication -->
-                                <form method="POST" action="{{ route('logout') }}">
-                                    @csrf
-
-                                    <x-dropdown-link :href="route('logout')"
-                                            onclick="event.preventDefault();
-                                                        this.closest('form').submit();">
-                                        {{ __('Log Out') }}
+                                <x-slot name="content">
+                                    <x-dropdown-link :href="route('profile.edit')">
+                                        <i class="far fa-user mr-2 text-slate-400"></i>{{ __('Profile') }}
                                     </x-dropdown-link>
-                                </form>
-                            </x-slot>
-                        </x-dropdown>
-                    </div>
-                </header>
 
-                <!-- Page Header -->
-                @isset($header)
-                    <div class="bg-white border-b border-gray-200 px-6 py-4">
-                        {{ $header }}
-                    </div>
-                @endisset
+                                    <!-- Authentication -->
+                                    <form method="POST" action="{{ route('logout') }}">
+                                        @csrf
 
-                <!-- Flash Messages -->
-                @if(session('success'))
-                    <div class="px-6 pt-6" x-data="{ show: true }" x-show="show" x-transition>
-                        <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative pr-10 shadow-sm" role="alert">
-                            <span class="block sm:inline">{{ session('success') }}</span>
-                            <button @click="show = false" class="absolute top-0 bottom-0 right-0 px-4 py-3 text-green-700 hover:text-green-900 focus:outline-none">
-                                <i class="fas fa-times"></i>
-                            </button>
+                                        <x-dropdown-link :href="route('logout')"
+                                                onclick="event.preventDefault();
+                                                            this.closest('form').submit();">
+                                            <i class="fas fa-arrow-right-from-bracket mr-2 text-slate-400"></i>{{ __('Log Out') }}
+                                        </x-dropdown-link>
+                                    </form>
+                                </x-slot>
+                            </x-dropdown>
                         </div>
-                    </div>
-                @endif
+                    </header>
 
-                @if(session('error'))
-                    <div class="px-6 pt-6" x-data="{ show: true }" x-show="show" x-transition>
-                        <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative pr-10 shadow-sm" role="alert">
-                            <span class="block sm:inline">{{ session('error') }}</span>
-                            <button @click="show = false" class="absolute top-0 bottom-0 right-0 px-4 py-3 text-red-700 hover:text-red-900 focus:outline-none">
-                                <i class="fas fa-times"></i>
-                            </button>
+                    <!-- Flash Messages -->
+                    @if(session('success'))
+                        <div class="px-4 sm:px-6 lg:px-8 pt-6" x-data="{ show: true }" x-show="show" x-transition x-init="setTimeout(() => show = false, 6000)">
+                            <div class="flex items-start gap-3 rounded-xl border border-emerald-200 bg-emerald-50/80 px-4 py-3 text-emerald-800 shadow-sm" role="status">
+                                <span class="mt-0.5 w-6 h-6 shrink-0 rounded-full bg-emerald-500 text-white grid place-items-center"><i class="fas fa-check text-[11px]"></i></span>
+                                <span class="flex-1 text-sm font-medium pt-0.5">{{ session('success') }}</span>
+                                <button @click="show = false" class="text-emerald-600 hover:text-emerald-900 focus:outline-none" aria-label="Dismiss"><i class="fas fa-times"></i></button>
+                            </div>
                         </div>
-                    </div>
-                @endif
+                    @endif
 
-                <!-- Main Content Body -->
-                <main class="p-6 flex-grow">
-                    {{ $slot }}
-                </main>
-                
+                    @if(session('error'))
+                        <div class="px-4 sm:px-6 lg:px-8 pt-6" x-data="{ show: true }" x-show="show" x-transition>
+                            <div class="flex items-start gap-3 rounded-xl border border-rose-200 bg-rose-50/80 px-4 py-3 text-rose-800 shadow-sm" role="status">
+                                <span class="mt-0.5 w-6 h-6 shrink-0 rounded-full bg-rose-500 text-white grid place-items-center"><i class="fas fa-exclamation text-[11px]"></i></span>
+                                <span class="flex-1 text-sm font-medium pt-0.5">{{ session('error') }}</span>
+                                <button @click="show = false" class="text-rose-600 hover:text-rose-900 focus:outline-none" aria-label="Dismiss"><i class="fas fa-times"></i></button>
+                            </div>
+                        </div>
+                    @endif
+
+                    <!-- Main Content Body -->
+                    <main class="app-main px-4 sm:px-6 lg:px-8 py-6 flex-grow">
+                        {{ $slot }}
+                    </main>
+
+                    <!-- Footer -->
+                    <footer class="px-4 sm:px-6 lg:px-8 py-5 border-t border-slate-200/70 text-xs text-slate-500 flex flex-col sm:flex-row items-center justify-between gap-2">
+                        <p>&copy; {{ date('Y') }} {{ setting('pharmacy_name', 'M PharmaPro') }}. All rights reserved.</p>
+                        <p class="flex items-center gap-1.5">Powered by <x-brand-mark class="w-4 h-4" /> <span class="font-medium text-slate-600">M PharmaPro</span> · Developed by <a href="https://musheeda.com/" class="text-teal-600 hover:text-teal-700 font-medium">Musheeda</a></p>
+                    </footer>
+
                 </div> <!-- End Scrollable Area -->
-
-                <!-- Footer -->
-                <footer class="bg-medical-darker border-t border-medical-dark w-full shrink-0 z-20">
-                    <div class="w-full py-4 px-6">
-                        <div class="md:flex md:items-center md:justify-between">
-                            <div class="flex justify-center md:order-2 space-x-6 text-sm text-gray-400 transition-colors">
-                                <!-- <a href="#" class="hover:text-white hover:underline">Support</a> -->
-                                <!-- <a href="#" class="hover:text-white hover:underline">Privacy Policy</a> -->
-                                <!-- <a href="#" class="hover:text-white hover:underline">Terms of Service</a> -->
-                            </div>
-                            <div class="mt-4 md:mt-0 md:order-1">
-                                <p class="text-center md:text-left text-sm text-gray-400">
-                                    &copy; {{ date('Y') }} All rights reserved | Developed by  <a href="https://musheeda.com/" class="text-medical-primary hover:text-medical-primary/80 hover:underline">Musheeda</a>
-                                </p>
-                            </div>
-                        </div>
-                    </div>
-                </footer>
             </div>
         </div>
     </body>

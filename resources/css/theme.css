@@ -1,0 +1,301 @@
+/*
+ * PharmaPro admin theme.
+ * Everything is scoped under `.app-theme` (set on <body> in layouts/admin.blade.php)
+ * so it restyles existing pages without touching each view, and out-ranks the
+ * vendored DataTables / Select2 CSS that individual pages load later.
+ */
+
+.app-theme {
+    --brand: #0d9488;
+    --brand-600: #0f766e;
+    --brand-50: #f0fdfa;
+    --brand-100: #ccfbf1;
+    --ink: #0f172a;
+    --muted: #64748b;
+    --line: #e2e8f0;
+    --line-soft: #eef2f6;
+    --surface: #ffffff;
+    --canvas: #f4f7fa;
+    --radius: 16px;
+    --shadow-card: 0 1px 2px rgba(15, 23, 42, .04), 0 4px 16px -6px rgba(15, 23, 42, .08);
+    background: var(--canvas);
+    color: #334155;
+    font-feature-settings: "cv11", "ss01";
+}
+
+/* ---------- Content area ---------- */
+.app-theme .app-main {
+    background:
+        radial-gradient(1200px 300px at 70% -120px, rgba(13, 148, 136, .07), transparent 70%),
+        var(--canvas);
+}
+/* Pages wrap themselves in .py-12 plus max-w-7xl; tighten the double padding. */
+.app-theme .app-main > .py-12,
+.app-theme .app-main > .py-6 { padding-top: .25rem; padding-bottom: 1.5rem; }
+.app-theme .app-main > div > .max-w-7xl { padding-left: 0; padding-right: 0; }
+
+/* Page title passed through the $header slot */
+.app-theme .app-page-title h2,
+.app-theme .app-page-title h1 {
+    font-size: 1.125rem;
+    font-weight: 700;
+    color: var(--ink);
+    letter-spacing: -.01em;
+}
+
+/* ---------- Cards ---------- */
+.app-theme .app-main .bg-white.shadow-sm,
+.app-theme .app-main .bg-white.shadow,
+.app-theme .app-main .bg-white.shadow-md,
+.app-theme .app-main .bg-white.rounded-lg {
+    border-radius: var(--radius);
+    border: 1px solid var(--line-soft);
+    box-shadow: var(--shadow-card);
+}
+.app-theme .app-main .bg-white.shadow-sm > .p-6:first-child { padding: 1.5rem; }
+
+/* Dashboard stat tiles use a thick bottom border; turn it into a slim accent bar */
+.app-theme .app-main .bg-white.border-b-4 {
+    border-bottom-width: 1px;
+    position: relative;
+    overflow: hidden;
+}
+.app-theme .app-main .bg-white.border-b-4.border-medical-primary { box-shadow: var(--shadow-card), inset 0 -3px 0 #14b8a6; }
+.app-theme .app-main .bg-white.border-b-4.border-green-500 { box-shadow: var(--shadow-card), inset 0 -3px 0 #22c55e; }
+.app-theme .app-main .bg-white.border-b-4.border-red-500 { box-shadow: var(--shadow-card), inset 0 -3px 0 #ef4444; }
+.app-theme .app-main .bg-white.border-b-4.border-orange-500 { box-shadow: var(--shadow-card), inset 0 -3px 0 #f97316; }
+.app-theme .app-main .bg-white.border-b-4.border-blue-500 { box-shadow: var(--shadow-card), inset 0 -3px 0 #3b82f6; }
+.app-theme .app-main .bg-white.border-b-4.border-purple-500 { box-shadow: var(--shadow-card), inset 0 -3px 0 #a855f7; }
+
+/* ---------- Tables (plain + DataTables) ---------- */
+.app-theme .app-main table { border-collapse: separate; border-spacing: 0; width: 100%; }
+.app-theme .app-main table thead th,
+.app-theme .app-main table.dataTable thead th,
+.app-theme .app-main table.dataTable thead td {
+    background: #f8fafc;
+    color: var(--muted);
+    font-size: .6875rem;
+    font-weight: 600;
+    letter-spacing: .06em;
+    text-transform: uppercase;
+    padding: .8rem 1rem;
+    border-bottom: 1px solid var(--line);
+    border-top: 1px solid var(--line);
+    white-space: nowrap;
+    text-align: left;
+}
+.app-theme .app-main table thead th:first-child { border-left: 1px solid var(--line); border-top-left-radius: 12px; }
+.app-theme .app-main table thead th:last-child { border-right: 1px solid var(--line); border-top-right-radius: 12px; }
+
+.app-theme .app-main table tbody td,
+.app-theme .app-main table.dataTable tbody td {
+    padding: .85rem 1rem;
+    border-top: 0;
+    border-bottom: 1px solid var(--line-soft);
+    color: #334155;
+    font-size: .875rem;
+    vertical-align: middle;
+    background: transparent;
+}
+.app-theme .app-main table tbody tr { background: var(--surface); transition: background-color .15s ease; }
+.app-theme .app-main table tbody tr:hover > td,
+.app-theme .app-main table.dataTable.hover > tbody > tr:hover > *,
+.app-theme .app-main table.dataTable.display > tbody > tr:hover > * {
+    background: #f6fbfa !important;
+    box-shadow: none !important;
+}
+.app-theme .app-main table tbody tr:hover > td:first-child { box-shadow: inset 3px 0 0 var(--brand) !important; }
+.app-theme .app-main table tfoot th,
+.app-theme .app-main table tfoot td {
+    background: #f8fafc;
+    border-top: 1px solid var(--line);
+    padding: .8rem 1rem;
+    font-weight: 600;
+    color: var(--ink);
+}
+.app-theme .app-main table .divide-y > :not([hidden]) ~ :not([hidden]) { border-top-width: 0; }
+
+/* DataTables chrome */
+.app-theme .app-main table.dataTable { margin: .75rem 0 !important; border-bottom: 0 !important; }
+.app-theme .app-main table.dataTable.no-footer { border-bottom: 0 !important; }
+.app-theme .app-main table.dataTable > tbody > tr.odd > *,
+.app-theme .app-main table.dataTable.stripe > tbody > tr.odd > * { box-shadow: none; }
+.app-theme .app-main table.dataTable thead > tr > th.sorting,
+.app-theme .app-main table.dataTable thead > tr > th.sorting_asc,
+.app-theme .app-main table.dataTable thead > tr > th.sorting_desc { padding-right: 28px; }
+.app-theme .app-main table.dataTable thead > tr > th.sorting_asc,
+.app-theme .app-main table.dataTable thead > tr > th.sorting_desc { color: var(--brand-600); }
+.app-theme .app-main table.dataTable > tbody > tr > .sorting_1 { box-shadow: none !important; }
+
+.app-theme .dataTables_wrapper { font-size: .875rem; color: var(--muted); }
+.app-theme .dataTables_wrapper .dataTables_length,
+.app-theme .dataTables_wrapper .dataTables_filter { margin-bottom: .25rem; }
+.app-theme .dataTables_wrapper .dataTables_length select,
+.app-theme .dataTables_wrapper .dataTables_filter input {
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    background-color: #fff;
+    padding: .45rem .75rem;
+    font-size: .875rem;
+    color: var(--ink);
+    transition: border-color .15s, box-shadow .15s;
+}
+.app-theme .dataTables_wrapper .dataTables_length select { padding-right: 2rem; margin: 0 .4rem; }
+.app-theme .dataTables_wrapper .dataTables_filter input {
+    margin-left: .5rem;
+    min-width: 240px;
+    padding-left: 2.1rem;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='%2394a3b8'%3E%3Cpath fill-rule='evenodd' d='M9 3.5a5.5 5.5 0 100 11 5.5 5.5 0 000-11zM2 9a7 7 0 1112.45 4.39l3.08 3.08a.75.75 0 11-1.06 1.06l-3.08-3.08A7 7 0 012 9z' clip-rule='evenodd'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: .7rem center;
+    background-size: 1rem;
+}
+.app-theme .dataTables_wrapper .dataTables_filter input:focus,
+.app-theme .dataTables_wrapper .dataTables_length select:focus {
+    outline: none;
+    border-color: var(--brand);
+    box-shadow: 0 0 0 3px rgba(13, 148, 136, .15);
+}
+.app-theme .dataTables_wrapper .dataTables_info { padding-top: 1rem; color: var(--muted); font-size: .8125rem; }
+.app-theme .dataTables_wrapper .dataTables_paginate { padding-top: .75rem; }
+.app-theme .dataTables_wrapper .dataTables_paginate .paginate_button,
+.app-theme .dataTables_wrapper .dataTables_paginate .paginate_button.disabled,
+.app-theme .dataTables_wrapper .dataTables_paginate .paginate_button.disabled:hover {
+    min-width: 2.1rem;
+    height: 2.1rem;
+    line-height: 2.1rem;
+    padding: 0 .65rem !important;
+    margin-left: .25rem;
+    border-radius: 10px !important;
+    border: 1px solid var(--line) !important;
+    background: #fff !important;
+    color: #475569 !important;
+    font-weight: 500;
+    box-shadow: none !important;
+    transition: all .15s ease;
+}
+.app-theme .dataTables_wrapper .dataTables_paginate .paginate_button:hover {
+    border-color: var(--brand) !important;
+    color: var(--brand-600) !important;
+    background: var(--brand-50) !important;
+}
+.app-theme .dataTables_wrapper .dataTables_paginate .paginate_button.current,
+.app-theme .dataTables_wrapper .dataTables_paginate .paginate_button.current:hover {
+    background: linear-gradient(180deg, #14b8a6, #0d9488) !important;
+    border-color: #0d9488 !important;
+    color: #fff !important;
+    box-shadow: 0 4px 12px -4px rgba(13, 148, 136, .6) !important;
+}
+.app-theme .dataTables_wrapper .dataTables_paginate .paginate_button.disabled,
+.app-theme .dataTables_wrapper .dataTables_paginate .paginate_button.disabled:hover { opacity: .45; }
+.app-theme .dataTables_wrapper .dataTables_paginate .ellipsis { padding: 0 .4rem; }
+.app-theme .dataTables_wrapper .dataTables_processing {
+    background: rgba(255, 255, 255, .92) !important;
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    box-shadow: 0 10px 30px -10px rgba(15, 23, 42, .25);
+    color: var(--brand-600);
+    font-weight: 600;
+    padding: .9rem 1rem !important;
+    margin-top: -26px !important;
+}
+.app-theme .dataTables_wrapper .dataTables_processing > div:last-child > div { background: var(--brand) !important; }
+.app-theme .dataTables_wrapper .dataTables_scroll { border-radius: 12px; }
+.app-theme .dataTables_empty { color: var(--muted) !important; padding: 2.5rem 1rem !important; text-align: center; }
+
+/* Responsive horizontal scroll for wide tables */
+.app-theme .app-main .overflow-x-auto { border-radius: 12px; }
+
+/* ---------- Forms ---------- */
+.app-theme .app-main input[type="text"],
+.app-theme .app-main input[type="email"],
+.app-theme .app-main input[type="number"],
+.app-theme .app-main input[type="password"],
+.app-theme .app-main input[type="date"],
+.app-theme .app-main input[type="month"],
+.app-theme .app-main input[type="tel"],
+.app-theme .app-main input[type="search"],
+.app-theme .app-main input[type="url"],
+.app-theme .app-main select,
+.app-theme .app-main textarea {
+    border-radius: 10px;
+    border-color: #d8dee6;
+    transition: border-color .15s ease, box-shadow .15s ease;
+}
+.app-theme .app-main input:focus,
+.app-theme .app-main select:focus,
+.app-theme .app-main textarea:focus {
+    border-color: var(--brand) !important;
+    --tw-ring-color: rgba(13, 148, 136, .18) !important;
+    box-shadow: 0 0 0 3px rgba(13, 148, 136, .15) !important;
+    outline: none;
+}
+.app-theme .app-main label { color: #475569; }
+.app-theme .app-main input[type="checkbox"],
+.app-theme .app-main input[type="radio"] { color: var(--brand); }
+.app-theme .app-main input[type="file"]::file-selector-button { border-radius: 9999px; }
+
+/* ---------- Buttons & accents ---------- */
+.app-theme .app-main .bg-medical-primary {
+    background: linear-gradient(180deg, #14b8a6, #0d9488);
+    box-shadow: 0 1px 0 rgba(255, 255, 255, .25) inset, 0 6px 16px -8px rgba(13, 148, 136, .8);
+    border-radius: 10px;
+    transition: filter .15s ease, transform .15s ease;
+}
+.app-theme .app-main .bg-medical-primary:hover { filter: brightness(1.06); }
+.app-theme .app-main a.bg-medical-primary:active,
+.app-theme .app-main button.bg-medical-primary:active { transform: translateY(1px); }
+.app-theme .app-main .hover\:bg-blue-700:hover,
+.app-theme .app-main .hover\:bg-teal-700:hover { background-color: var(--brand-600); }
+.app-theme .app-main .bg-blue-600 { background-color: var(--brand); }
+.app-theme .app-main button.rounded,
+.app-theme .app-main a.rounded { border-radius: 10px; }
+.app-theme .app-main .text-indigo-600,
+.app-theme .app-main .text-blue-600 { color: var(--brand-600); }
+.app-theme .app-main .hover\:text-indigo-900:hover,
+.app-theme .app-main .hover\:text-blue-900:hover { color: #134e4a; }
+
+/* Badges rendered from PHP (rounded-full + leading-5) */
+.app-theme .app-main span.rounded-full.leading-5 { padding: .1rem .6rem; font-weight: 600; letter-spacing: .01em; }
+
+/* Alerts inside pages */
+.app-theme .app-main [role="alert"] { border-radius: 12px; }
+
+/* Modals used across pages */
+.app-theme .fixed.inset-0.bg-gray-500.bg-opacity-75 { background: rgba(15, 23, 42, .55); backdrop-filter: blur(3px); }
+.app-theme .inline-block.align-bottom.bg-white.rounded-lg { border-radius: 18px; }
+
+/* ---------- Sidebar ---------- */
+.app-theme .app-sidebar {
+    background:
+        radial-gradient(400px 220px at 0% 0%, rgba(20, 184, 166, .14), transparent 70%),
+        linear-gradient(180deg, #0b1324 0%, #0f172a 100%);
+    border-right: 1px solid rgba(148, 163, 184, .08);
+    scrollbar-width: thin;
+    scrollbar-color: rgba(148, 163, 184, .2) transparent;
+}
+.app-theme .app-sidebar .nav-active {
+    background: linear-gradient(90deg, rgba(20, 184, 166, .22), rgba(20, 184, 166, .06));
+    color: #fff;
+    box-shadow: inset 3px 0 0 #2dd4bf;
+}
+.app-theme .app-sidebar .nav-active i { color: #5eead4 !important; }
+.app-theme .app-sidebar .nav-sub-active { color: #fff; background: rgba(255, 255, 255, .06); }
+.app-theme .app-sidebar .nav-sub-active::before {
+    content: ""; display: inline-block; width: 6px; height: 6px; border-radius: 9999px;
+    background: #2dd4bf; margin-right: .5rem; vertical-align: middle; margin-left: -.85rem;
+}
+
+/* ---------- Select2 ---------- */
+.app-theme .select2-container .select2-selection--single { border-radius: 10px !important; border-color: #d8dee6 !important; }
+.app-theme .select2-container--default.select2-container--focus .select2-selection--single,
+.app-theme .select2-container--default.select2-container--open .select2-selection--single {
+    border-color: var(--brand) !important;
+    box-shadow: 0 0 0 3px rgba(13, 148, 136, .15) !important;
+}
+.app-theme .select2-dropdown { border-radius: 12px !important; overflow: hidden; border-color: var(--line) !important; box-shadow: 0 12px 30px -12px rgba(15, 23, 42, .25) !important; }
+.app-theme .select2-container--default .select2-results__option--highlighted.select2-results__option--selectable { background: var(--brand) !important; }
+.app-theme .select2-search__field:focus { border-color: var(--brand) !important; box-shadow: 0 0 0 3px rgba(13, 148, 136, .15) !important; }
+
+/* ---------- Scrollbar for main area ---------- */
+.app-theme .app-scroll { scrollbar-width: thin; scrollbar-color: #cbd5e1 transparent; }

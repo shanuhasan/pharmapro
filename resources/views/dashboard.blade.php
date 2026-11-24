@@ -87,60 +87,62 @@
             const labels = @json($chartLabels);
             const dataPoints = @json($chartData);
 
+            const currency = @json(setting('currency_symbol', '₹'));
+            const fmt = v => currency + Number(v).toLocaleString('en-IN', { maximumFractionDigits: 2 });
+            const gradient = ctx.createLinearGradient(0, 0, 0, ctx.canvas.clientHeight || 320);
+            gradient.addColorStop(0, 'rgba(20, 184, 166, 0.28)');
+            gradient.addColorStop(1, 'rgba(20, 184, 166, 0)');
+
+            Chart.defaults.font.family = "Figtree, ui-sans-serif, system-ui, sans-serif";
+            Chart.defaults.color = '#64748b';
+
             new Chart(ctx, {
                 type: 'line',
                 data: {
                     labels: labels,
                     datasets: [{
-                        label: 'Daily Revenue ($)',
+                        label: 'Daily Revenue',
                         data: dataPoints,
-                        borderColor: '#0d6efd',
-                        backgroundColor: 'rgba(13, 110, 253, 0.1)',
-                        borderWidth: 2,
+                        borderColor: '#0d9488',
+                        backgroundColor: gradient,
+                        borderWidth: 2.5,
                         fill: true,
-                        tension: 0.3,
-                        pointBackgroundColor: '#0d6efd',
-                        pointRadius: 4,
-                        pointHoverRadius: 6
+                        tension: 0.35,
+                        pointRadius: 0,
+                        pointHoverRadius: 5,
+                        pointHoverBackgroundColor: '#0d9488',
+                        pointHoverBorderColor: '#fff',
+                        pointHoverBorderWidth: 2
                     }]
                 },
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
+                    interaction: { mode: 'index', intersect: false },
                     plugins: {
-                        legend: {
-                            display: true,
-                            position: 'top',
-                        },
+                        legend: { display: false },
                         tooltip: {
+                            backgroundColor: '#0f172a',
+                            padding: 10,
+                            cornerRadius: 8,
+                            displayColors: false,
                             callbacks: {
-                                label: function(context) {
-                                    let label = context.dataset.label || '';
-                                    if (label) {
-                                        label += ': ';
-                                    }
-                                    if (context.parsed.y !== null) {
-                                        label += new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(context.parsed.y);
-                                    }
-                                    return label;
-                                }
+                                title: items => 'Day ' + items[0].label,
+                                label: c => 'Revenue: ' + fmt(c.parsed.y)
                             }
                         }
                     },
                     scales: {
                         y: {
                             beginAtZero: true,
-                            ticks: {
-                                callback: function(value, index, values) {
-                                    return '$' + value;
-                                }
-                            }
+                            border: { display: false },
+                            grid: { color: '#eef2f6' },
+                            ticks: { callback: v => fmt(v), maxTicksLimit: 6 }
                         },
                         x: {
-                            title: {
-                                display: true,
-                                text: 'Day of Month'
-                            }
+                            border: { display: false },
+                            grid: { display: false },
+                            title: { display: true, text: 'Day of Month' }
                         }
                     }
                 }
