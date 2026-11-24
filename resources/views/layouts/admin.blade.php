@@ -122,7 +122,7 @@
                             <span class="hidden md:inline-flex items-center gap-2 rounded-full bg-slate-100 px-3 py-1.5 text-xs font-medium text-slate-500">
                                 <i class="far fa-calendar text-teal-600"></i> {{ now()->format('D, d M Y') }}
                             </span>
-                            @if(Route::has('pos.index') && auth()->user()->role !== 'super_admin')
+                            @if(Route::has('pos.index') && auth()->user()->role !== 'super_admin' && !request()->routeIs('pos.*'))
                                 <a href="{{ route('pos.index') }}" class="hidden sm:inline-flex items-center gap-2 rounded-lg px-3.5 py-2 text-sm font-semibold text-white bg-gradient-to-b from-teal-500 to-teal-600 shadow-sm shadow-teal-600/30 hover:brightness-105 transition">
                                     <i class="fas fa-cash-register text-xs"></i> New Sale
                                 </a>

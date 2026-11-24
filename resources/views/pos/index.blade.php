@@ -1,169 +1,249 @@
 <x-admin-layout>
     <x-slot name="header">
-        <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-            {{ __('Point of Sale (POS)') }}
-        </h2>
+        <div class="flex items-center gap-3">
+            <h2 class="font-semibold text-xl text-gray-800 leading-tight">{{ __('Point of Sale') }}</h2>
+            <span class="hidden sm:inline-flex items-center gap-1.5 rounded-full bg-emerald-50 border border-emerald-200 px-2.5 py-0.5 text-[11px] font-semibold text-emerald-700">
+                <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span> Register open
+            </span>
+        </div>
     </x-slot>
 
-    <div class="py-6">
-        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
-            <div class="flex flex-col md:flex-row gap-6">
-                
-                <!-- Left Side: Cart & Search -->
-                <div class="md:w-2/3 bg-white overflow-hidden shadow-sm sm:rounded-lg">
-                    <div class="p-6">
-                        @if(auth()->user()->role === 'admin')
-                        <div class="mb-6 bg-blue-50 p-4 rounded-lg border border-blue-200">
-                            <label class="block text-sm font-bold text-blue-800 mb-2">Admin: Select Active Branch for POS</label>
-                            <select id="pos_branch_id" class="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-2">
-                                @foreach($branches as $b)
-                                    <option value="{{ $b->id }}">{{ $b->name }}</option>
-                                @endforeach
-                            </select>
-                        </div>
-                        @endif
+    @php($cur = setting('currency_symbol', '₹'))
 
-                        <h3 class="text-lg font-bold mb-4">Search Medicine</h3>
-                        <div class="relative mb-6">
-                            <input type="text" id="medicine_search" class="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-3" placeholder="Search by name or generic name (e.g. Paracetamol)...">
-                            <div id="medicine_results" class="absolute z-10 w-full bg-white border border-gray-200 mt-1 rounded-md shadow-lg hidden max-h-60 overflow-y-auto">
+    <style>
+        .pos-card { background:#fff; border:1px solid #eef2f6; border-radius:18px; box-shadow:0 1px 2px rgba(15,23,42,.04),0 6px 20px -8px rgba(15,23,42,.10); }
+        .pos-label { display:block; font-size:.6875rem; font-weight:600; letter-spacing:.08em; text-transform:uppercase; color:#64748b; margin-bottom:.4rem; }
+        .pos-input { display:block; width:100%; border-radius:10px; border:1px solid #d8dee6; background:#fff; padding:.6rem .8rem; font-size:.875rem; color:#0f172a; }
+        .pos-input::placeholder { color:#94a3b8; }
+        .pos-dropdown { position:absolute; z-index:40; left:0; right:0; margin-top:.4rem; background:#fff; border:1px solid #e2e8f0; border-radius:14px; box-shadow:0 18px 40px -14px rgba(15,23,42,.3); max-height:20rem; overflow-y:auto; padding:.35rem; }
+        .pos-result { display:flex; align-items:center; gap:.75rem; padding:.6rem .7rem; border-radius:10px; cursor:pointer; }
+        .pos-result:hover { background:#f0fdfa; }
+        .pay-opt { flex:1; display:flex; flex-direction:column; align-items:center; gap:.3rem; padding:.65rem .5rem; border:1px solid #e2e8f0; border-radius:12px; font-size:.75rem; font-weight:600; color:#475569; background:#fff; transition:all .15s; }
+        .pay-opt i { font-size:1rem; color:#94a3b8; transition:color .15s; }
+        .pay-opt:hover { border-color:#99f6e4; }
+        .pay-opt.is-active { border-color:#0d9488; background:#f0fdfa; color:#0f766e; box-shadow:0 0 0 3px rgba(13,148,136,.12); }
+        .pay-opt.is-active i { color:#0d9488; }
+        .app-theme .app-main #cart_table thead th { background:#f8fafc; }
+        .app-theme .app-main #cart_table input[type="number"] { width:4.5rem; padding:.35rem .5rem; text-align:center; border-radius:8px; }
+        .pct-input { width:4.25rem !important; padding:.3rem .5rem !important; text-align:right; font-size:.8125rem !important; border-radius:8px !important; }
+        kbd.pos-kbd { font-family:inherit; font-size:.6875rem; font-weight:600; color:#64748b; background:#f1f5f9; border:1px solid #e2e8f0; border-bottom-width:2px; border-radius:6px; padding:.05rem .4rem; }
+    </style>
+
+    <div class="py-6">
+        <div class="grid grid-cols-1 xl:grid-cols-12 gap-6 items-start">
+
+            <!-- ============ Left: search, cart, bill details ============ -->
+            <div class="xl:col-span-8 space-y-6">
+
+                @if(auth()->user()->role === 'admin')
+                <div class="pos-card px-5 py-4 flex flex-col sm:flex-row sm:items-center gap-3">
+                    <div class="flex items-center gap-3 sm:w-1/2">
+                        <span class="w-9 h-9 rounded-xl bg-violet-50 text-violet-600 grid place-items-center shrink-0"><i class="fas fa-code-branch"></i></span>
+                        <div>
+                            <p class="text-sm font-semibold text-slate-800">Active branch</p>
+                            <p class="text-xs text-slate-500">Stock and invoice will use this branch</p>
+                        </div>
+                    </div>
+                    <div class="sm:w-1/2">
+                        <select id="pos_branch_id" class="pos-input">
+                            @foreach($branches as $b)
+                                <option value="{{ $b->id }}">{{ $b->name }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                </div>
+                @endif
+
+                <!-- Search + Cart -->
+                <div class="pos-card">
+                    <div class="p-5 sm:p-6 border-b border-slate-100">
+                        <div class="relative">
+                            <i class="fas fa-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-teal-600"></i>
+                            <input type="text" id="medicine_search" autocomplete="off"
+                                   class="pos-input !py-3.5 !pl-11 !pr-20 !text-base !rounded-xl !border-slate-200 bg-slate-50/60"
+                                   placeholder="Search medicine by name or generic (e.g. Paracetamol)…">
+                            <span class="hidden sm:block absolute right-4 top-1/2 -translate-y-1/2"><kbd class="pos-kbd">F2</kbd></span>
+                            <div id="medicine_results" class="pos-dropdown hidden">
                                 <!-- Results populate here -->
                             </div>
                         </div>
+                    </div>
 
-                        <h3 class="text-lg font-bold mb-4">Current Cart</h3>
-                        <div class="overflow-x-auto">
-                            <table class="min-w-full divide-y divide-gray-200" id="cart_table">
-                                <thead class="bg-gray-50">
-                                    <tr>
-                                        <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Medicine</th>
-                                        <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Batch</th>
-                                        <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Price</th>
-                                        <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Strip</th>
-                                        <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Qty</th>
-                                        <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Total</th>
-                                        <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase"></th>
-                                    </tr>
-                                </thead>
-                                <tbody class="bg-white divide-y divide-gray-200" id="cart_body">
-                                    <!-- Cart Items -->
-                                    <tr id="empty_cart"><td colspan="7" class="px-4 py-4 text-center text-gray-500">Cart is empty</td></tr>
-                                </tbody>
-                            </table>
-                        </div>
+                    <div class="px-5 sm:px-6 pt-5 flex items-center justify-between">
+                        <h3 class="text-base font-semibold text-slate-800 flex items-center gap-2">
+                            <i class="fas fa-basket-shopping text-teal-600"></i> Current Cart
+                            <span id="cart_count" class="ml-1 inline-flex items-center justify-center min-w-[1.5rem] h-6 px-2 rounded-full bg-teal-50 text-teal-700 text-xs font-bold">0</span>
+                        </h3>
+                        <span class="text-xs text-slate-400 hidden sm:block">Edit strips or quantity inline</span>
+                    </div>
+
+                    <div class="p-5 sm:p-6 pt-3 overflow-x-auto">
+                        <table class="min-w-full" id="cart_table">
+                            <thead>
+                                <tr>
+                                    <th>Medicine</th>
+                                    <th>Batch</th>
+                                    <th>Price</th>
+                                    <th class="!text-center">Strip</th>
+                                    <th class="!text-center">Qty</th>
+                                    <th class="!text-right">Total</th>
+                                    <th></th>
+                                </tr>
+                            </thead>
+                            <tbody id="cart_body">
+                                <tr id="empty_cart"><td colspan="7">
+                                    <div class="py-12 text-center">
+                                        <div class="mx-auto w-14 h-14 rounded-2xl bg-slate-50 border border-slate-100 grid place-items-center text-slate-300 text-2xl"><i class="fas fa-cart-shopping"></i></div>
+                                        <p class="mt-3 text-sm font-semibold text-slate-700">Cart is empty</p>
+                                        <p class="text-xs text-slate-400 mt-1">Search a medicine above to start billing</p>
+                                    </div>
+                                </td></tr>
+                            </tbody>
+                        </table>
                     </div>
                 </div>
 
-                <!-- Right Side: Checkout & Payment -->
-                <div class="md:w-1/3 bg-white overflow-hidden shadow-sm sm:rounded-lg">
-                    <div class="p-6">
-                        <h3 class="text-lg font-bold mb-4">Customer Details</h3>
-                        <div class="relative mb-2">
-                            <input type="text" id="customer_search" class="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-2" placeholder="Search Customer (Name/Phone)...">
-                            <div id="customer_results" class="absolute z-10 w-full bg-white border border-gray-200 mt-1 rounded-md shadow-lg hidden max-h-40 overflow-y-auto">
-                                <!-- Results populate here -->
+                <!-- Bill details -->
+                <div class="pos-card p-5 sm:p-6">
+                    <h3 class="text-base font-semibold text-slate-800 flex items-center gap-2 mb-5"><i class="fas fa-file-invoice text-teal-600"></i> Bill Details</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+
+                        <!-- Customer -->
+                        <div>
+                            <div class="flex items-center justify-between">
+                                <span class="pos-label">Customer</span>
+                                <button type="button" id="toggle_new_customer" class="text-xs font-semibold text-teal-700 hover:text-teal-800 mb-1.5"><i class="fas fa-plus text-[10px]"></i> Add manually</button>
                             </div>
-                        </div>
-                        <div class="text-right mb-4">
-                            <button type="button" id="toggle_new_customer" class="text-xs text-blue-600 hover:text-blue-800"><i class="fas fa-plus"></i> Add New Manually</button>
-                        </div>
-                        
-                        <!-- Manual Customer Entry Form -->
-                        <div id="new_customer_div" class="hidden mb-6 p-3 bg-gray-50 border border-gray-200 rounded-md">
-                            <div class="flex justify-between items-center mb-2">
-                                <span class="text-sm font-bold text-gray-700">New Customer</span>
-                                <button type="button" id="cancel_new_customer" class="text-red-500 hover:text-red-700 text-xs"><i class="fas fa-times"></i> Cancel</button>
+                            <div class="relative">
+                                <input type="text" id="customer_search" autocomplete="off" class="pos-input" placeholder="Search name or phone…">
+                                <div id="customer_results" class="pos-dropdown hidden">
+                                    <!-- Results populate here -->
+                                </div>
                             </div>
-                            <input type="text" id="new_customer_name" class="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-2 mb-2" placeholder="Customer Name">
-                            <input type="text" id="new_customer_phone" class="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-2 mb-2" placeholder="Phone Number (Optional)">
-                            <textarea id="new_customer_address" class="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-2" placeholder="Customer Address (Optional)" rows="2"></textarea>
-                        </div>
-                        <div id="selected_customer_div" class="hidden mb-6 p-3 bg-blue-50 border border-blue-200 rounded-md flex justify-between items-center">
-                            <div>
-                                <p class="text-sm font-bold text-blue-800" id="cust_name_disp"></p>
-                                <p class="text-xs text-blue-600" id="cust_phone_disp"></p>
+
+                            <div id="new_customer_div" class="hidden mt-1 space-y-2 rounded-xl border border-slate-200 bg-slate-50/70 p-3">
+                                <div class="flex justify-between items-center">
+                                    <span class="text-xs font-semibold text-slate-700">New customer</span>
+                                    <button type="button" id="cancel_new_customer" class="text-xs text-rose-500 hover:text-rose-700"><i class="fas fa-times"></i> Cancel</button>
+                                </div>
+                                <input type="text" id="new_customer_name" class="pos-input" placeholder="Customer name">
+                                <input type="text" id="new_customer_phone" class="pos-input" placeholder="Phone (optional)">
+                                <textarea id="new_customer_address" class="pos-input" placeholder="Address (optional)" rows="2"></textarea>
                             </div>
-                            <button type="button" id="remove_customer" class="text-red-500 hover:text-red-700"><i class="fas fa-times"></i></button>
-                        </div>
-                        <input type="hidden" id="selected_customer_id">
 
-                        <hr class="my-4">
-                        <h3 class="text-lg font-bold mb-4">Doctor Details (Optional)</h3>
-                        <div class="mb-6 p-3 bg-gray-50 border border-gray-200 rounded-md">
-                            <input type="text" id="doctor_name" class="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-2 mb-2" placeholder="Doctor Name">
-                            <textarea id="doctor_address" class="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-2" placeholder="Doctor Address" rows="2"></textarea>
-                        </div>
-
-                        <hr class="my-4">
-                        <h3 class="text-lg font-bold mb-4">Invoice Details</h3>
-                        <div class="mb-6 p-3 bg-gray-50 border border-gray-200 rounded-md">
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Invoice Date</label>
-                            <input type="date" id="sale_date" class="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-2" value="{{ date('Y-m-d') }}">
-                        </div>
-
-                        <hr class="my-4">
-                        <h3 class="text-lg font-bold mb-4">Payment Summary</h3>
-                        
-                        <div class="flex justify-between mb-2">
-                            <span class="text-gray-600">Subtotal</span>
-                            <span class="font-bold" id="summary_subtotal">{{ setting('currency_symbol', '₹') }}0.00</span>
-                        </div>
-                        
-                        <div class="flex justify-between mb-2 items-center">
-                            <span class="text-gray-600">Discount (%)</span>
-                            <div class="flex items-center">
-                                <input type="number" id="summary_discount_pct" value="0" min="0" max="100" step="any" class="w-16 text-right rounded-md border-gray-300 shadow-sm sm:text-sm mr-2">
-                                <span class="text-sm font-bold text-gray-700 w-20 text-right" id="summary_discount_amt_display">{{ setting('currency_symbol', '₹') }}0.00</span>
-                                <input type="hidden" id="summary_discount" value="0">
+                            <div id="selected_customer_div" class="hidden mt-1 rounded-xl border border-teal-200 bg-teal-50/70 p-3 flex justify-between items-center gap-3">
+                                <div class="flex items-center gap-3 min-w-0">
+                                    <span class="w-9 h-9 rounded-full bg-gradient-to-br from-teal-400 to-emerald-600 text-white grid place-items-center shrink-0"><i class="fas fa-user text-xs"></i></span>
+                                    <div class="min-w-0">
+                                        <p class="text-sm font-semibold text-teal-900 truncate" id="cust_name_disp"></p>
+                                        <p class="text-xs text-teal-700" id="cust_phone_disp"></p>
+                                    </div>
+                                </div>
+                                <button type="button" id="remove_customer" class="w-7 h-7 rounded-lg text-teal-700 hover:bg-white hover:text-rose-600 grid place-items-center"><i class="fas fa-times"></i></button>
                             </div>
+                            <input type="hidden" id="selected_customer_id">
+                            <p class="mt-2 text-[11px] text-slate-400">Leave empty for a walk-in customer.</p>
                         </div>
 
-                        <div class="flex justify-between mb-2 items-center">
-                            <span class="text-gray-600">SGST (%)</span>
-                            <div class="flex items-center">
-                                <input type="number" id="summary_sgst_pct" value="{{ setting('sgst_percentage', 0) }}" min="0" step="any" class="w-16 text-right rounded-md border-gray-300 shadow-sm sm:text-sm mr-2">
-                                <span class="text-sm font-bold text-gray-700 w-20 text-right" id="summary_sgst_amt_display">{{ setting('currency_symbol', '₹') }}0.00</span>
-                                <input type="hidden" id="summary_sgst" value="0">
+                        <!-- Doctor -->
+                        <div class="space-y-2">
+                            <span class="pos-label">Doctor <span class="normal-case tracking-normal font-normal text-slate-400">(optional)</span></span>
+                            <input type="text" id="doctor_name" class="pos-input" placeholder="Doctor name">
+                            <textarea id="doctor_address" class="pos-input" placeholder="Doctor address / clinic" rows="2"></textarea>
+                        </div>
+
+                        <!-- Invoice -->
+                        <div>
+                            <span class="pos-label">Invoice date</span>
+                            <input type="date" id="sale_date" class="pos-input" value="{{ date('Y-m-d') }}">
+                            <p class="mt-2 text-[11px] text-slate-400">Invoice number is generated automatically.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ============ Right: payment panel ============ -->
+            <div class="xl:col-span-4 xl:sticky xl:top-[5.5rem]">
+                <div class="pos-card overflow-hidden">
+                    <!-- Grand total -->
+                    <div class="relative overflow-hidden bg-gradient-to-br from-slate-900 via-slate-900 to-teal-900 px-6 py-6 text-white">
+                        <div class="absolute -top-16 -right-16 w-48 h-48 rounded-full bg-teal-400/20 blur-2xl"></div>
+                        <p class="relative text-[11px] font-semibold uppercase tracking-[.16em] text-teal-200/80">Amount payable</p>
+                        <p class="relative mt-1 text-4xl font-bold tracking-tight tabular-nums" id="summary_total">{{ $cur }}0.00</p>
+                        <div class="relative mt-4 flex items-center justify-between text-sm">
+                            <span class="text-slate-300">Change due</span>
+                            <span class="font-semibold text-amber-300 tabular-nums" id="change_amount">{{ $cur }}0.00</span>
+                        </div>
+                    </div>
+
+                    <div class="p-6 space-y-5">
+                        <!-- Breakdown -->
+                        <div class="space-y-3 text-sm">
+                            <div class="flex justify-between items-center">
+                                <span class="text-slate-500">Subtotal</span>
+                                <span class="font-semibold text-slate-800 tabular-nums" id="summary_subtotal">{{ $cur }}0.00</span>
                             </div>
-                        </div>
 
-                        <div class="flex justify-between mb-4 items-center">
-                            <span class="text-gray-600">CGST (%)</span>
-                            <div class="flex items-center">
-                                <input type="number" id="summary_cgst_pct" value="{{ setting('cgst_percentage', 0) }}" min="0" step="any" class="w-16 text-right rounded-md border-gray-300 shadow-sm sm:text-sm mr-2">
-                                <span class="text-sm font-bold text-gray-700 w-20 text-right" id="summary_cgst_amt_display">{{ setting('currency_symbol', '₹') }}0.00</span>
-                                <input type="hidden" id="summary_cgst" value="0">
+                            <div class="flex justify-between items-center gap-3">
+                                <span class="text-slate-500">Discount</span>
+                                <div class="flex items-center gap-2">
+                                    <div class="relative"><input type="number" id="summary_discount_pct" value="0" min="0" max="100" step="any" class="pct-input pos-input !pr-6"><span class="absolute right-2 top-1/2 -translate-y-1/2 text-[11px] text-slate-400">%</span></div>
+                                    <span class="w-24 text-right font-semibold text-rose-600 tabular-nums" id="summary_discount_amt_display">{{ $cur }}0.00</span>
+                                    <input type="hidden" id="summary_discount" value="0">
+                                </div>
                             </div>
-                        </div>
-                        <input type="hidden" id="summary_tax" value="0">
 
-                        <div class="flex justify-between mb-6 pt-4 border-t-2 border-gray-200">
-                            <span class="text-xl font-bold text-gray-800">Total</span>
-                            <span class="text-xl font-bold text-green-600" id="summary_total">{{ setting('currency_symbol', '₹') }}0.00</span>
+                            <div class="flex justify-between items-center gap-3">
+                                <span class="text-slate-500">SGST</span>
+                                <div class="flex items-center gap-2">
+                                    <div class="relative"><input type="number" id="summary_sgst_pct" value="{{ setting('sgst_percentage', 0) }}" min="0" step="any" class="pct-input pos-input !pr-6"><span class="absolute right-2 top-1/2 -translate-y-1/2 text-[11px] text-slate-400">%</span></div>
+                                    <span class="w-24 text-right font-semibold text-slate-700 tabular-nums" id="summary_sgst_amt_display">{{ $cur }}0.00</span>
+                                    <input type="hidden" id="summary_sgst" value="0">
+                                </div>
+                            </div>
+
+                            <div class="flex justify-between items-center gap-3">
+                                <span class="text-slate-500">CGST</span>
+                                <div class="flex items-center gap-2">
+                                    <div class="relative"><input type="number" id="summary_cgst_pct" value="{{ setting('cgst_percentage', 0) }}" min="0" step="any" class="pct-input pos-input !pr-6"><span class="absolute right-2 top-1/2 -translate-y-1/2 text-[11px] text-slate-400">%</span></div>
+                                    <span class="w-24 text-right font-semibold text-slate-700 tabular-nums" id="summary_cgst_amt_display">{{ $cur }}0.00</span>
+                                    <input type="hidden" id="summary_cgst" value="0">
+                                </div>
+                            </div>
+                            <input type="hidden" id="summary_tax" value="0">
+                            <p class="text-[11px] text-slate-400">Prices are tax-inclusive; GST is shown from the net amount.</p>
                         </div>
 
-                        <div class="mb-4">
-                            <label class="block text-sm font-medium text-gray-700">Payment Method</label>
-                            <select id="payment_method" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm sm:text-sm">
+                        <div class="h-px bg-slate-100"></div>
+
+                        <!-- Payment method -->
+                        <div>
+                            <span class="pos-label">Payment method</span>
+                            <select id="payment_method" class="hidden">
                                 <option value="cash">Cash</option>
                                 <option value="card">Credit Card</option>
                                 <option value="online">Online Transfer</option>
                             </select>
+                            <div class="flex gap-2" role="radiogroup" aria-label="Payment method">
+                                <button type="button" class="pay-opt is-active" data-method="cash" role="radio" aria-checked="true"><i class="fas fa-money-bill-wave"></i>Cash</button>
+                                <button type="button" class="pay-opt" data-method="card" role="radio" aria-checked="false"><i class="far fa-credit-card"></i>Card</button>
+                                <button type="button" class="pay-opt" data-method="online" role="radio" aria-checked="false"><i class="fas fa-qrcode"></i>Online</button>
+                            </div>
                         </div>
 
-                        <div class="flex justify-between mb-4 items-center">
-                            <span class="text-gray-800 font-bold">Paid Amount</span>
-                            <input type="number" id="paid_amount" value="0" min="0" class="w-32 text-right rounded-md border-gray-300 shadow-sm font-bold text-lg">
+                        <!-- Paid amount -->
+                        <div>
+                            <span class="pos-label">Amount received</span>
+                            <div class="relative">
+                                <span class="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 font-semibold">{{ $cur }}</span>
+                                <input type="number" id="paid_amount" value="0" min="0" class="pos-input !pl-9 !py-3 !text-lg font-bold text-right tabular-nums">
+                            </div>
                         </div>
 
-                        <div class="flex justify-between mb-6 items-center">
-                            <span class="text-gray-600 font-bold">Change Due</span>
-                            <span class="text-xl font-bold text-orange-500" id="change_amount">{{ setting('currency_symbol', '₹') }}0.00</span>
-                        </div>
-
-                        <button type="button" id="complete_sale" class="w-full bg-medical-primary hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-md shadow-lg text-lg">
-                            <i class="fas fa-check-circle mr-2"></i> Complete Sale
+                        <button type="button" id="complete_sale" class="w-full inline-flex items-center justify-center gap-2 rounded-xl py-3.5 px-4 text-base font-semibold text-white bg-gradient-to-b from-teal-500 to-teal-600 shadow-lg shadow-teal-600/30 hover:brightness-105 active:translate-y-px transition disabled:opacity-60 disabled:cursor-not-allowed">
+                            <i class="fas fa-check-circle"></i> Complete Sale
                         </button>
+                        <p class="text-center text-[11px] text-slate-400">The invoice opens for printing after checkout.</p>
                     </div>
                 </div>
             </div>
@@ -171,32 +251,38 @@
     </div>
 
     <!-- Batch Selection Modal -->
-    <div id="batchModal" class="fixed z-50 inset-0 overflow-y-auto hidden" aria-labelledby="modal-title" role="dialog" aria-modal="true">
-        <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
-            <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" aria-hidden="true"></div>
-            <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
-            <div class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-2xl sm:w-full">
-                <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
-                    <h3 class="text-lg leading-6 font-medium text-gray-900 mb-4" id="batch_modal_title">Select Batch</h3>
-                    <div class="overflow-x-auto">
-                        <table class="min-w-full divide-y divide-gray-200">
-                            <thead class="bg-gray-50">
-                                <tr>
-                                    <th class="px-4 py-2 text-left text-xs font-medium text-gray-500">Batch</th>
-                                    <th class="px-4 py-2 text-left text-xs font-medium text-gray-500">Expiry</th>
-                                    <th class="px-4 py-2 text-left text-xs font-medium text-gray-500">Available Qty</th>
-                                    <th class="px-4 py-2 text-left text-xs font-medium text-gray-500">Sale Price</th>
-                                    <th class="px-4 py-2"></th>
-                                </tr>
-                            </thead>
-                            <tbody class="bg-white divide-y divide-gray-200" id="batch_tbody">
-                                <!-- Batches populate here -->
-                            </tbody>
-                        </table>
+    <div id="batchModal" class="fixed z-50 inset-0 overflow-y-auto hidden" aria-labelledby="batch_modal_title" role="dialog" aria-modal="true">
+        <div class="flex items-center justify-center min-h-screen p-4">
+            <div class="fixed inset-0 bg-slate-900/55 backdrop-blur-sm" aria-hidden="true" id="batch_backdrop"></div>
+            <div class="relative w-full max-w-2xl bg-white rounded-2xl shadow-2xl overflow-hidden">
+                <div class="flex items-center justify-between px-6 py-4 border-b border-slate-100">
+                    <div class="flex items-center gap-3">
+                        <span class="w-9 h-9 rounded-xl bg-teal-50 text-teal-600 grid place-items-center"><i class="fas fa-layer-group"></i></span>
+                        <div>
+                            <h3 class="text-base font-semibold text-slate-900" id="batch_modal_title">Select Batch</h3>
+                            <p class="text-xs text-slate-500">Choose the batch to bill from. Batches expiring soon are highlighted.</p>
+                        </div>
                     </div>
+                    <button type="button" class="w-8 h-8 grid place-items-center rounded-lg text-slate-400 hover:bg-slate-100 hover:text-slate-700" onclick="document.getElementById('close_batch_modal').click()" aria-label="Close"><i class="fas fa-times"></i></button>
                 </div>
-                <div class="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
-                    <button type="button" id="close_batch_modal" class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm">Cancel</button>
+                <div class="px-6 py-4 overflow-x-auto">
+                    <table class="min-w-full">
+                        <thead>
+                            <tr>
+                                <th>Batch</th>
+                                <th>Expiry</th>
+                                <th>Available</th>
+                                <th>Sale Price</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody id="batch_tbody">
+                            <!-- Batches populate here -->
+                        </tbody>
+                    </table>
+                </div>
+                <div class="bg-slate-50 px-6 py-3 flex justify-end">
+                    <button type="button" id="close_batch_modal" class="inline-flex justify-center rounded-lg border border-slate-200 px-4 py-2 bg-white text-sm font-medium text-slate-700 hover:bg-slate-50">Cancel</button>
                 </div>
             </div>
         </div>
@@ -207,7 +293,9 @@
     
     <script src="{{ asset('vendor/jquery/jquery.min.js') }}"></script>
     <script>
-        const currSym = "{{ setting('currency_symbol', '₹') }}";
+        const currSym = @json(setting('currency_symbol', '₹'));
+        const esc = v => String(v ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+        const emptyCartHtml = $('#empty_cart').prop('outerHTML');
         
         $(document).ready(function() {
             // Setup CSRF
@@ -216,6 +304,20 @@
             let cart = [];
             let subtotal = 0;
             let total = 0;
+
+            // Payment method buttons drive the (hidden) select
+            $('.pay-opt').on('click', function() {
+                $('.pay-opt').removeClass('is-active').attr('aria-checked', 'false');
+                $(this).addClass('is-active').attr('aria-checked', 'true');
+                $('#payment_method').val($(this).data('method'));
+            });
+
+            // Keyboard shortcuts: F2 = search medicine, Esc = close batch picker
+            $(document).on('keydown', function(e) {
+                if (e.key === 'F2') { e.preventDefault(); $('#medicine_search').trigger('focus'); }
+                if (e.key === 'Escape' && !$('#batchModal').hasClass('hidden')) { $('#batchModal').addClass('hidden'); }
+            });
+            $('#batch_backdrop').on('click', function() { $('#batchModal').addClass('hidden'); });
 
             // --- 1. MEDICINE SEARCH ---
             $('#medicine_search').on('input', function() {
@@ -228,11 +330,16 @@
                 $.get('/api/medicine/search', {q: query}, function(data) {
                     let html = '';
                     if(data.length === 0) {
-                        html = '<div class="p-3 text-gray-500">No medicines found.</div>';
+                        html = '<div class="px-3 py-6 text-center text-sm text-slate-500"><i class="fas fa-circle-info text-slate-300 mr-1"></i> No medicines found.</div>';
                     } else {
                         data.forEach(med => {
-                            html += `<div class="p-3 hover:bg-blue-50 cursor-pointer border-b border-gray-100 med-result" data-id="${med.id}" data-name="${med.name}">
-                                        <p class="font-bold text-gray-800">${med.name} <span class="text-xs font-normal text-gray-500">(${med.generic_name || 'N/A'})</span></p>
+                            html += `<div class="pos-result med-result" data-id="${esc(med.id)}" data-name="${esc(med.name)}">
+                                        <span class="w-8 h-8 rounded-lg bg-teal-50 text-teal-600 grid place-items-center shrink-0"><i class="fas fa-capsules text-sm"></i></span>
+                                        <div class="min-w-0 flex-1">
+                                            <p class="text-sm font-semibold text-slate-800 truncate">${esc(med.name)}</p>
+                                            <p class="text-xs text-slate-500 truncate">${esc(med.generic_name || 'N/A')}</p>
+                                        </div>
+                                        <i class="fas fa-plus text-xs text-slate-300"></i>
                                      </div>`;
                         });
                     }
@@ -268,7 +375,7 @@
                         return;
                     }
 
-                    $('#batch_modal_title').text('Select Batch for ' + medName);
+                    $('#batch_modal_title').text('Select batch · ' + medName);
                     let html = '';
                     batches.forEach(b => {
                         let isExpiring = false;
@@ -280,22 +387,24 @@
                             let diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)); 
                             if(diffDays <= 30) {
                                 isExpiring = true;
-                                bgClass = 'bg-orange-50';
+                                bgClass = 'bg-amber-50/60';
                             }
                         }
                         
                         html += `<tr class="${bgClass}">
-                                    <td class="px-4 py-3">${b.batch_number}</td>
-                                    <td class="px-4 py-3 ${isExpiring ? 'text-red-500 font-bold' : ''}">${b.expiry_date || 'N/A'} ${isExpiring ? '(!)' : ''}</td>
-                                    <td class="px-4 py-3 font-bold">${b.quantity}</td>
-                                    <td class="px-4 py-3 text-green-600">${currSym}${parseFloat(b.sale_price).toFixed(2)}</td>
-                                    <td class="px-4 py-3 text-right">
-                                        <button type="button" class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded text-sm add-batch-to-cart" 
-                                            data-med-id="${medId}" data-med-name="${medName}" 
-                                            data-stock-id="${b.id}" data-batch="${b.batch_number}" 
-                                            data-price="${b.sale_price}" data-max-qty="${b.quantity}"
-                                            data-medicines-per-strip="${b.medicine ? b.medicine.medicines_per_strip : 1}">
-                                            Add
+                                    <td><span class="font-mono text-xs font-semibold text-slate-700 bg-slate-100 rounded-md px-2 py-1">${esc(b.batch_number || '—')}</span></td>
+                                    <td>${isExpiring
+                                        ? `<span class="inline-flex items-center gap-1 rounded-full bg-amber-100 text-amber-800 px-2 py-0.5 text-xs font-semibold"><i class="fas fa-triangle-exclamation text-[10px]"></i> ${esc(b.expiry_date)}</span>`
+                                        : `<span class="text-slate-600">${esc(b.expiry_date || 'N/A')}</span>`}</td>
+                                    <td class="font-semibold text-slate-800 tabular-nums">${esc(b.quantity)}</td>
+                                    <td class="font-semibold text-teal-700 tabular-nums">${currSym}${parseFloat(b.sale_price).toFixed(2)}</td>
+                                    <td class="text-right">
+                                        <button type="button" class="inline-flex items-center gap-1.5 rounded-lg bg-gradient-to-b from-teal-500 to-teal-600 hover:brightness-105 text-white px-3 py-1.5 text-xs font-semibold shadow-sm add-batch-to-cart"
+                                            data-med-id="${esc(medId)}" data-med-name="${esc(medName)}"
+                                            data-stock-id="${esc(b.id)}" data-batch="${esc(b.batch_number)}"
+                                            data-price="${esc(b.sale_price)}" data-max-qty="${esc(b.quantity)}"
+                                            data-medicines-per-strip="${b.medicine ? esc(b.medicine.medicines_per_strip) : 1}">
+                                            <i class="fas fa-plus text-[10px]"></i> Add
                                         </button>
                                     </td>
                                 </tr>`;
@@ -344,31 +453,35 @@
                 subtotal = 0;
 
                 if(cart.length === 0) {
-                    html = '<tr id="empty_cart"><td colspan="7" class="px-4 py-4 text-center text-gray-500">Cart is empty</td></tr>';
+                    html = emptyCartHtml;
                 } else {
                     cart.forEach((item, index) => {
                         subtotal += item.total;
                         let strips = item.quantity / item.medicines_per_strip;
                         let stripsDisplay = Number.isInteger(strips) ? strips : strips.toFixed(2);
                         html += `<tr>
-                                    <td class="px-4 py-3 text-sm font-bold">${item.name}</td>
-                                    <td class="px-4 py-3 text-sm text-gray-500">${item.batch}</td>
-                                    <td class="px-4 py-3 text-sm">${currSym}${item.price.toFixed(2)}</td>
-                                    <td class="px-4 py-3 text-sm">
-                                        <input type="number" class="w-16 rounded border-gray-300 p-1 text-sm update-strip" data-index="${index}" value="${stripsDisplay}" min="0" step="any">
+                                    <td>
+                                        <p class="font-semibold text-slate-800">${esc(item.name)}</p>
+                                        <p class="text-[11px] text-slate-400">${item.medicines_per_strip} per strip · max ${item.max_qty}</p>
                                     </td>
-                                    <td class="px-4 py-3 text-sm">
-                                        <input type="number" class="w-16 rounded border-gray-300 p-1 text-sm update-qty" data-index="${index}" value="${item.quantity}" min="1" max="${item.max_qty}">
+                                    <td><span class="font-mono text-xs text-slate-600 bg-slate-100 rounded-md px-2 py-1">${esc(item.batch || '—')}</span></td>
+                                    <td class="tabular-nums text-slate-600">${currSym}${item.price.toFixed(2)}</td>
+                                    <td class="text-center">
+                                        <input type="number" class="rounded-md border-gray-300 text-sm update-strip" data-index="${index}" value="${stripsDisplay}" min="0" step="any">
                                     </td>
-                                    <td class="px-4 py-3 text-sm font-bold text-green-600 row-total">${currSym}${item.total.toFixed(2)}</td>
-                                    <td class="px-4 py-3 text-sm">
-                                        <button type="button" class="text-red-500 hover:text-red-700 remove-cart-item" data-index="${index}"><i class="fas fa-trash"></i></button>
+                                    <td class="text-center">
+                                        <input type="number" class="rounded-md border-gray-300 text-sm update-qty" data-index="${index}" value="${item.quantity}" min="1" max="${item.max_qty}">
+                                    </td>
+                                    <td class="text-right font-semibold text-slate-900 tabular-nums row-total">${currSym}${item.total.toFixed(2)}</td>
+                                    <td class="text-right">
+                                        <button type="button" class="w-8 h-8 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 grid place-items-center ml-auto remove-cart-item" data-index="${index}" title="Remove"><i class="fas fa-trash-can text-sm"></i></button>
                                     </td>
                                 </tr>`;
                     });
                 }
 
                 $('#cart_body').html(html);
+                $('#cart_count').text(cart.length);
                 updateTotals();
             }
 
@@ -516,11 +629,15 @@
                 $.get('/api/customer/search', {q: query}, function(data) {
                     let html = '';
                     if(data.length === 0) {
-                        html = '<div class="p-3 text-gray-500">No customers found.</div>';
+                        html = '<div class="px-3 py-5 text-center text-sm text-slate-500">No customers found.</div>';
                     } else {
                         data.forEach(c => {
-                            html += `<div class="p-3 hover:bg-blue-50 cursor-pointer border-b border-gray-100 cust-result" data-id="${c.id}" data-name="${c.name}" data-phone="${c.phone || 'No Phone'}">
-                                        <p class="font-bold text-gray-800">${c.name} <span class="text-sm font-normal text-gray-500">(${c.phone || 'No Phone'})</span></p>
+                            html += `<div class="pos-result cust-result" data-id="${esc(c.id)}" data-name="${esc(c.name)}" data-phone="${esc(c.phone || 'No Phone')}">
+                                        <span class="w-8 h-8 rounded-full bg-slate-100 text-slate-500 grid place-items-center shrink-0 text-xs font-bold">${esc((c.name || '?').charAt(0).toUpperCase())}</span>
+                                        <div class="min-w-0">
+                                            <p class="text-sm font-semibold text-slate-800 truncate">${esc(c.name)}</p>
+                                            <p class="text-xs text-slate-500">${esc(c.phone || 'No Phone')}</p>
+                                        </div>
                                      </div>`;
                         });
                     }
@@ -578,7 +695,7 @@
                     return;
                 }
 
-                $(this).prop('disabled', true).html('<i class="fas fa-spinner fa-spin mr-2"></i> Processing...');
+                $(this).prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> Processing…');
 
                 let payload = {
                     branch_id: $('#pos_branch_id').length ? $('#pos_branch_id').val() : null,
@@ -617,7 +734,7 @@
                     },
                     error: function(xhr) {
                         alert('Error: ' + xhr.responseJSON.message);
-                        $('#complete_sale').prop('disabled', false).html('<i class="fas fa-check-circle mr-2"></i> Complete Sale');
+                        $('#complete_sale').prop('disabled', false).html('<i class="fas fa-check-circle"></i> Complete Sale');
                     }
                 });
             });
